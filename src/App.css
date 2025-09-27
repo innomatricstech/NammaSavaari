@@ -1,0 +1,123 @@
+/* App.css */
+
+:root {
+    /* Custom Dark Blue and Red Palette */
+    --primary-color: #1A237E; /* Deep Indigo Blue */
+    --primary-dark: #0F1975; 
+    --accent-red: #C62828; /* Dark Red */
+
+    /* Override Bootstrap variables */
+    --bs-primary: var(--primary-color);
+    --bs-danger: var(--accent-red);
+    --bs-body-font-family: 'Inter', sans-serif;
+}
+
+.main-app-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+.dashboard-layout {
+    display: flex;
+    flex: 1; 
+    overflow: hidden; 
+}
+
+/* General Sidebar Styles */
+.sidebar {
+    width: 250px;
+    /* Apply Dark Blue Gradient */
+    background: linear-gradient(180deg, red 0%, #00008B 100%); 
+    color: white;
+    transition: transform 0.3s ease-in-out;
+    z-index: 1030;
+    flex-shrink: 0;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+}
+.sidebar-menu {
+    padding: 0 1rem;
+}
+.menu-item {
+    padding: 12px 15px;
+    transition: background-color 0.3s, transform 0.1s;
+}
+.menu-item:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    transform: translateX(3px);
+}
+.menu-item.active-menu-item {
+    background-color: rgba(255, 255, 255, 0.25) !important;
+    border-left: 5px solid var(--accent-red); /* Red accent border */
+    padding-left: 10px;
+    font-weight: 600;
+}
+
+/* Main Content Area */
+.main-content-area {
+    flex-grow: 1;
+    overflow-y: auto;
+    background-color: #f0f2f5; /* Lighter professional grey background */
+}
+
+/* Table Styling using Dark Blue and Red Accent */
+.table-dark {
+    --bs-table-bg: var(--primary-color);
+    --bs-table-color: white;
+    border-bottom: 3px solid var(--accent-red);
+}
+.table-striped>tbody>tr:nth-of-type(odd)>* {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* --- Mobile Responsiveness (Max-width: 767.98px) --- */
+@media (max-width: 767.98px) {
+    .sidebar {
+        position: fixed;
+        top: 0;
+        height: 100vh;
+        transform: translateX(-250px); /* Hide off-screen by default */
+        padding-top: 66px; /* Space for TopHeader */
+    }
+    .sidebar-open .sidebar {
+        transform: translateX(0); /* Slide in when active */
+    }
+    .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 1029;
+    }
+    .app-header .container-fluid {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+        
+    }
+}
+
+/* --- Extra Small Responsiveness (Max-width: 575.98px) --- */
+@media (max-width: 575.98px) {
+    .app-header h3 { font-size: 1rem !important; }
+    .app-header .d-sm-inline { display: none !important; } /* Hide 'Welcome, Admin' on tiny screens */
+    h4.pb-2 { font-size: 1.15rem !important; }
+    .table th, .table td { font-size: 0.75rem; padding: 0.5rem; }
+    
+    /* Ensures action icons are small and fit without wrapping */
+    .btn-sm { font-size: 0.7rem; padding: 0.2rem 0.6rem; }
+    .btn-sm > i.fa-eye, .btn-sm > i.fa-trash-alt {
+        font-size: 0.8rem;
+        margin: 0;
+        padding: 0;
+    }
+}
+
+.app-footer {
+    padding: 10px;
+    text-align: center;
+    border-top: 1px solid #dee2e6;
+    background-color: #e9ecef;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
