@@ -43,7 +43,7 @@ const CustomModal = ({ isOpen, onClose, title, children, size = 'lg', footerButt
           <div className="modal-header bg-primary text-white border-0 rounded-top-4">
             <h5 className="modal-title fw-bold">{title}</h5>
             <button type="button" className="btn-close btn-close-white" aria-label="Close" onClick={onClose}>
-              <X size={20} />
+              {/* <X size={20} /> */}
             </button>
           </div>
           
