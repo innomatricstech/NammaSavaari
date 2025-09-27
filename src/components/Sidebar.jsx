@@ -1,54 +1,56 @@
-// Sidebar.jsx (Without Logout option)
-
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import logo from "../assets/Logo.jpg";
-import { BusIcon } from "./Icons"; 
-// Note: Removed import for LogoutIcon as it's no longer used
+import { BusIcon, LogoutIcon } from "./Icons";
 
-// Updated the Sidebar to only accept 'onNavigate' for a single active item/view
 const Sidebar = ({ toggleSidebar, activeItem = "Booking Details", onNavigate }) => {
-    
-    const navigate = onNavigate || (() => console.warn("onNavigate prop is missing in Sidebar."));
-    
-    // Menu items now contains only "Booking Details"
+    const navigate = useNavigate();
+
     const menuItems = [
-        { name: "Booking Details", icon: <BusIcon /> },
-        // { name: "Logout", icon: <LogoutIcon /> } <-- REMOVED
+        { name: "Booking Details", icon: <BusIcon /> }
     ];
 
     const handleMenuItemClick = (itemName, isMobile) => {
-        // 1. Notify the parent component (Dashboard/App) about the navigation
-        navigate(itemName);
-        
-        // 2. Close the sidebar on mobile devices if the function is provided
+        if (onNavigate) {
+            onNavigate(itemName);
+        }
         if (isMobile && toggleSidebar) {
             toggleSidebar();
         }
     };
 
+    const handleLogout = () => {
+        // Navigate to Logout page
+        navigate("/logout");
+        if (toggleSidebar) toggleSidebar();
+    };
+
     return (
-        <div className="sidebar bg-dark text-white vh-100 d-flex flex-column p-3">
-            {/* Profile Section */}
-            <div className="sidebar-profile d-flex flex-column align-items-start mb-4 border-bottom border-light border-opacity-25">
-                <img 
-                    src={logo} 
-                    alt="Admin" 
-                    className="profile-img shadow-lg mb-3" 
-                    style={{ width: '60px', height: '60px', borderRadius: '50%', backgroundColor: 'white' }}
+        <div className="sidebar d-flex flex-column text-white p-3" style={{ minHeight: "100vh" }}>
+            {/* Logo & Profile Section */}
+            <div className="sidebar-profile text-center mb-4 pb-3 border-bottom border-light border-opacity-25">
+                <img
+                    src={logo}
+                    alt="Admin Logo"
+                    className="shadow-sm mb-2"
+                    style={{
+                        width: "64px",
+                        height: "64px",
+                        borderRadius: "50%",
+                        backgroundColor: "#fff",
+                        objectFit: "cover"
+                    }}
                 />
-                <div className="profile-info">
-                    <div className="name fs-6 fw-bold">System Administrator</div>
-                    <div className="online-status text-warning d-flex align-items-center small">
-                        <span className="me-1">●</span> Active
-                    </div>
+                <div className="fs-6 fw-bold mt-2">System Administrator</div>
+                <div className="text-warning small d-flex justify-content-center align-items-center">
+                    <span className="me-1">●</span> Active
                 </div>
             </div>
 
-            {/* Menu Items (Only Booking Details) */}
+            {/* Menu Items */}
             <div className="sidebar-menu flex-grow-1">
                 {menuItems.map((item, index) => {
-                    // Since there is only one item, it will always be active here.
-                    const isActive = activeItem === item.name; 
+                    const isActive = activeItem === item.name;
                     return (
                         <button
                             key={index}
@@ -60,9 +62,25 @@ const Sidebar = ({ toggleSidebar, activeItem = "Booking Details", onNavigate }) 
                         </button>
                     );
                 })}
+
+                {/* Logout Button just below Booking Details */}
+                <div className="sidebar-logout mt-2">
+                    <button
+                        className="menu-item d-flex align-items-center p-3 w-100 rounded-3 border-0 text-white text-start bg-danger bg-opacity-75"
+                        onClick={handleLogout}
+                    >
+                        <span className="me-3 fs-5"><LogoutIcon /></span>
+                        <span className="fw-medium">Logout</span>
+                    </button>
+                </div>
             </div>
-            
-            {/* You might want to add a footer or version info here later */}
+
+            {/* Footer */}
+            <div className="mt-auto">
+                <div className="text-center small text-muted pt-3 border-top border-light border-opacity-25">
+                    <span>© 2025 Dashboard</span>
+                </div>
+            </div>
         </div>
     );
 };
