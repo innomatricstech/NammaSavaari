@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Eye, Trash2, X } from "lucide-react";
+import { Eye } from "lucide-react"; 
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 import CustomModal from "./CustomModal";
-import BookingDetailsView from "./BookingDetailsView"; 
+import BookingDetailsView from "./BookingDetailsView";
 
 // --- Mock Data Generation ---
 const generateMockBookings = (count) => {
@@ -19,7 +19,7 @@ const generateMockBookings = (count) => {
 
   for (let i = 1; i <= count; i++) {
     const amount = Math.floor(Math.random() * 2000) + 1000;
-    const gst = amount * 0.05; // gstCharged acts as the Convenience Fee
+    const gst = amount * 0.05; 
     const commission = amount * 0.08;
     const tcs = amount * 0.01;
 
@@ -30,7 +30,7 @@ const generateMockBookings = (count) => {
       operatorName: operators[i % operators.length],
       paymentDetails: paymentModes[i % paymentModes.length],
       ticketAmount: amount,
-      gstCharged: gst, // Key used for Convenience Fee in data object
+      gstCharged: gst, 
       platformCommission: commission,
       tcsCollected: tcs,
       totalAmount: amount + gst + commission + tcs,
@@ -61,7 +61,8 @@ const BusManagementTable = () => {
     { key: "convensionfee", label: "Convension Fee" },
     { key: "platformCommission", label: "Platform Commission" },
     { key: "tcsCollected", label: "TCS Collected" },
-    { key: "paymentDetails", label: "Payment Mode & Amount" },
+    { key: "paymentMode", label: "Payment Mode" },
+    { key: "totalAmount", label: "Total Amount" },
     { key: "actions", label: "Actions" },
   ]), []);
 
@@ -73,11 +74,6 @@ const BusManagementTable = () => {
   const handleEntriesPerPageChange = (e) => {
     setEntriesPerPage(Number(e.target.value));
     setCurrentPage(1);
-  };
-
-  const handleDelete = (id) => {
-    setBookings(prev => prev.filter(b => b.id !== id));
-    setIsModalOpen(false);
   };
 
   // --- Filtering and Pagination Logic ---
@@ -119,14 +115,11 @@ const BusManagementTable = () => {
   }, [bookings, searchTerm, currentPage, entriesPerPage, startDate, endDate]);
 
   // --- Export PDF ---
-const handleExportPDF = useCallback(() => {
+  const handleExportPDF = useCallback(() => {
   try {
     const doc = new jsPDF();
-
-    // Sort bookings by date
     const sortedBookings = [...filteredBookings].sort((a, b) => new Date(a.bookingDate) - new Date(b.bookingDate));
 
-    // Table headers
     const headers = [[
       "Date of Booking",
       "Passenger Name",
@@ -135,10 +128,10 @@ const handleExportPDF = useCallback(() => {
       "Convenience Fee",
       "Platform Commission",
       "TCS Collected",
-      "Payment Mode & Amount"
+      "Payment Mode",
+      "Total Amount"
     ]];
 
-    // Map data for table
     const data = sortedBookings.map(b => [
       b.bookingDate || "N/A",
       b.passengerName || "N/A",
@@ -147,26 +140,28 @@ const handleExportPDF = useCallback(() => {
       b.gstCharged != null ? `$${b.gstCharged.toFixed(2)}` : "N/A",
       b.platformCommission != null ? `$${b.platformCommission.toFixed(2)}` : "N/A",
       b.tcsCollected != null ? `$${b.tcsCollected.toFixed(2)}` : "N/A",
-      `${b.paymentDetails || "N/A"} - ${b.totalAmount != null ? `$${b.totalAmount.toFixed(2)}` : "N/A"}`
+      b.paymentDetails || "N/A",
+      b.totalAmount != null ? `$${b.totalAmount.toFixed(2)}` : "N/A",
     ]);
 
-    // Calculate totals
-    const totalTicket = sortedBookings.reduce((sum, b) => sum + (b.ticketAmount || 0), 0);
-    const totalConvenience = sortedBookings.reduce((sum, b) => sum + (b.gstCharged || 0), 0);
-    const totalCommission = sortedBookings.reduce((sum, b) => sum + (b.platformCommission || 0), 0);
-    const totalTCS = sortedBookings.reduce((sum, b) => sum + (b.tcsCollected || 0), 0);
-    const totalAmount = sortedBookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0);
+    // --- Calculate Totals ---
+    const totals = {
+      ticketAmount: sortedBookings.reduce((sum, b) => sum + (b.ticketAmount || 0), 0),
+      gstCharged: sortedBookings.reduce((sum, b) => sum + (b.gstCharged || 0), 0),
+      platformCommission: sortedBookings.reduce((sum, b) => sum + (b.platformCommission || 0), 0),
+      tcsCollected: sortedBookings.reduce((sum, b) => sum + (b.tcsCollected || 0), 0),
+      totalAmount: sortedBookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0),
+    };
 
-    // Add total row
+    // --- Append totals row ---
     data.push([
-      "TOTAL",
-      "",
-      "",
-      `$${totalTicket.toFixed(2)}`,
-      `$${totalConvenience.toFixed(2)}`,
-      `$${totalCommission.toFixed(2)}`,
-      `$${totalTCS.toFixed(2)}`,
-      `$${totalAmount.toFixed(2)}`
+      "—", "—", "Overall Totals →",
+      `$${totals.ticketAmount.toFixed(2)}`,
+      `$${totals.gstCharged.toFixed(2)}`,
+      `$${totals.platformCommission.toFixed(2)}`,
+      `$${totals.tcsCollected.toFixed(2)}`,
+      "—",
+      `$${totals.totalAmount.toFixed(2)}`
     ]);
 
     autoTable(doc, {
@@ -186,37 +181,41 @@ const handleExportPDF = useCallback(() => {
 
 
   // --- Export Excel ---
-const handleExportExcel = useCallback(() => {
+  const handleExportExcel = useCallback(() => {
   const sortedBookings = [...filteredBookings].sort((a, b) => new Date(a.bookingDate) - new Date(b.bookingDate));
 
   const dataToExport = sortedBookings.map(b => ({
-    'Date of Booking': b.bookingDate,
-    'Passenger Name': b.passengerName || 'N/A',
-    'Operator Name': b.operatorName,
-    'Ticket Amount': b.ticketAmount,
-    'Convension Fee': b.gstCharged,
-    'Platform Commission': b.platformCommission,
-    'TCS Collected': b.tcsCollected,
-    'Payment Mode & Amount': `${b.paymentDetails} - ${b.totalAmount.toFixed(2)}`,
+    "Date of Booking": b.bookingDate,
+    "Passenger Name": b.passengerName || "N/A",
+    "Operator Name": b.operatorName,
+    "Ticket Amount": b.ticketAmount,
+    "Convenience Fee": b.gstCharged,
+    "Platform Commission": b.platformCommission,
+    "TCS Collected": b.tcsCollected,
+    "Payment Mode": b.paymentDetails,
+    "Total Amount": b.totalAmount,
   }));
 
-  // Calculate totals
-  const totalTicket = sortedBookings.reduce((sum, b) => sum + (b.ticketAmount || 0), 0);
-  const totalConvenience = sortedBookings.reduce((sum, b) => sum + (b.gstCharged || 0), 0);
-  const totalCommission = sortedBookings.reduce((sum, b) => sum + (b.platformCommission || 0), 0);
-  const totalTCS = sortedBookings.reduce((sum, b) => sum + (b.tcsCollected || 0), 0);
-  const totalAmount = sortedBookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0);
+  // --- Calculate Totals ---
+  const totals = {
+    ticketAmount: sortedBookings.reduce((sum, b) => sum + (b.ticketAmount || 0), 0),
+    gstCharged: sortedBookings.reduce((sum, b) => sum + (b.gstCharged || 0), 0),
+    platformCommission: sortedBookings.reduce((sum, b) => sum + (b.platformCommission || 0), 0),
+    tcsCollected: sortedBookings.reduce((sum, b) => sum + (b.tcsCollected || 0), 0),
+    totalAmount: sortedBookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0),
+  };
 
-  // Add totals row
+  // --- Append totals row ---
   dataToExport.push({
-    'Date of Booking': 'TOTAL',
-    'Passenger Name': '',
-    'Operator Name': '',
-    'Ticket Amount': totalTicket,
-    'Convension Fee': totalConvenience,
-    'Platform Commission': totalCommission,
-    'TCS Collected': totalTCS,
-    'Payment Mode & Amount': totalAmount.toFixed(2),
+    "Date of Booking": "",
+    "Passenger Name": "",
+    "Operator Name": "Overall Totals →",
+    "Ticket Amount": totals.ticketAmount,
+    "Convenience Fee": totals.gstCharged,
+    "Platform Commission": totals.platformCommission,
+    "TCS Collected": totals.tcsCollected,
+    "Payment Mode": "",
+    "Total Amount": totals.totalAmount,
   });
 
   const worksheet = XLSX.utils.json_to_sheet(dataToExport);
@@ -234,17 +233,9 @@ const handleExportExcel = useCallback(() => {
     let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
     let endPage = Math.min(totalPages, startPage + maxButtons - 1);
     if (endPage - startPage < maxButtons - 1) startPage = Math.max(1, endPage - maxButtons + 1);
-
     for (let i = startPage; i <= endPage; i++) {
       buttons.push(
-        <button
-          key={i}
-          className={`btn btn-sm ${i === currentPage ? "btn-primary" : "btn-outline-primary"} rounded-pill`}
-          onClick={() => handlePageChange(i)}
-          disabled={i === currentPage && totalPages > 0}
-        >
-          {i}
-        </button>
+        <button key={i} className={`btn btn-sm ${i === currentPage ? "btn-primary" : "btn-outline-primary"} rounded-pill`} onClick={() => handlePageChange(i)} disabled={i === currentPage && totalPages > 0}>{i}</button>
       );
     }
     return buttons;
@@ -261,24 +252,6 @@ const handleExportExcel = useCallback(() => {
         content: <BookingDetailsView booking={booking} />,
         size: "xl",
         footerButtons: <button className="btn btn-primary" onClick={() => setIsModalOpen(false)}>Close</button>
-      });
-      setIsModalOpen(true);
-    } else if (action === "Delete") {
-      setModalConfig({
-        title: `Confirm Deletion`,
-        content: (
-          <div className="p-3 bg-light rounded-3">
-            <p className="lead text-danger fw-bold"><X className="me-2" />Are you sure you want to permanently delete booking <strong>{booking.id}</strong>?</p>
-            <p className="text-muted small">This action cannot be undone.</p>
-          </div>
-        ),
-        size: "md",
-        footerButtons: (
-          <>
-            <button className="btn btn-secondary" onClick={() => setIsModalOpen(false)}>Cancel</button>
-            <button className="btn btn-danger" onClick={() => handleDelete(booking.id)}>Delete</button>
-          </>
-        )
       });
       setIsModalOpen(true);
     }
@@ -313,19 +286,6 @@ const handleExportExcel = useCallback(() => {
           </div>
         </div>
 
-        {/* Entries per page */}
-        {/* <div className="d-flex justify-content-between align-items-center mb-3">
-          <div className="d-flex align-items-center gap-2">
-            <label htmlFor="entries-per-page" className="form-label mb-0 small text-muted">Entries per page:</label>
-            <select id="entries-per-page" className="form-select form-select-sm" style={{ width: '80px' }} value={entriesPerPage} onChange={handleEntriesPerPageChange}>
-              <option value="10">10</option>
-              <option value="25">25</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
-            </select>
-          </div>
-        </div> */}
-
         {/* Table */}
         <div className="table-responsive shadow-lg rounded-3">
           <table className="table table-striped table-hover table-light mb-0 align-middle">
@@ -342,25 +302,14 @@ const handleExportExcel = useCallback(() => {
                   <td>{formatCurrency(b.gstCharged)}</td>
                   <td>{formatCurrency(b.platformCommission)}</td>
                   <td>{formatCurrency(b.tcsCollected)}</td>
-                  <td>{`${b.paymentDetails} - ${formatCurrency(b.totalAmount)}`}</td>
+                  <td>{b.paymentDetails}</td>
+                  <td>{formatCurrency(b.totalAmount)}</td>
                   <td>
-                  <div className="d-flex gap-2 align-items-center">
-                  <button
-                  className="btn btn-sm btn-info text-white"
-                 onClick={() => handleActionClick("View", b.id)}
-                  >
-                <Eye className="d-inline d-md-none" size={16} />
-                <span className="d-none d-md-inline">View</span>
-               </button>
-               <button
-               className="btn btn-sm btn-danger"
-               onClick={() => handleActionClick("Delete", b.id)}
-      >
-        <Trash2 className="d-inline d-md-none" size={16} />
-        <span className="d-none d-md-inline">Delete</span>
-      </button>
-    </div>
-  </td>
+                    <button className="btn btn-sm btn-info text-white" onClick={() => handleActionClick("View", b.id)}>
+                      <Eye className="d-inline d-md-none" size={16} />
+                      <span className="d-none d-md-inline">View</span>
+                    </button>
+                  </td>
                 </tr>
               )) : (
                 <tr><td colSpan={headers.length} className="text-center py-5 text-muted">No bookings found.</td></tr>

@@ -1,0 +1,240 @@
+General mobile screen container
+.mobile-screen-container {
+    width: 100%;
+    /* Max-width is used to constrain the size on desktop for a mobile feel */
+    max-width: 500px; 
+    margin: 0 auto;
+    background-color: #f8f8f8;
+    min-height: 100vh;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Mobile Header (Red Bar) --- */
+.mobile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #C00; /* Deep Red */
+    color: white;
+    padding: 15px 15px;
+    height: 60px;
+    font-size: 18px;
+    font-weight: bold;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.header-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 16px;
+    max-width: 60%;
+}
+
+.header-icon {
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.screen-content-area {
+    padding: 15px;
+}
+
+/* --- Search Bar --- */
+.search-container {
+    display: flex;
+    align-items: center;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.search-icon {
+    color: #888;
+    margin-right: 10px;
+    font-size: 18px;
+}
+
+.search-input {
+    flex-grow: 1;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    padding: 0;
+}
+
+/* --- Add New Message Section --- */
+.add-message-section {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.section-title-bar {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.plus-icon {
+    color: #C00; /* Deep Red */
+    font-size: 20px;
+    margin-right: 10px;
+}
+
+.section-heading {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.text-input {
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 12px;
+    margin-bottom: 15px;
+    font-size: 15px;
+    resize: none; 
+}
+
+.save-button {
+    width: 100%;
+    background-color: #C00; /* Deep Red */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 15px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.save-button:hover {
+    background-color: #A00;
+}
+
+/* --- Predefined Messages List --- */
+.predefined-list-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-top: 10px;
+}
+
+.predefined-heading {
+    font-size: 18px;
+    color: #C00;
+    margin-right: 10px;
+    margin-bottom: 0;
+}
+
+.message-count-tag {
+    background-color: #F7CEC9; /* Light Red/Pink */
+    color: #C00;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* --- Predefined Message Card --- */
+.predefined-card-container {
+    background-color: white;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    padding: 15px;
+    position: relative;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.card-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 8px; /* Simulates the red box/indicator */
+    height: 100%;
+    background-color: #C00;
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    padding-left: 10px; /* Offset for the indicator */
+}
+
+.card-icon {
+    color: #C00;
+    font-size: 20px;
+    margin-right: 10px;
+}
+
+.card-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    color: #333;
+}
+
+.card-content {
+    padding: 10px 10px 0 10px;
+}
+
+.card-text {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.5;
+    margin-bottom: 10px;
+}
+
+.card-actions {
+    display: flex;
+    justify-content: flex-start;
+    padding-left: 10px;
+    margin-top: 5px;
+}
+
+.action-button {
+    display: flex;
+    align-items: center;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-right: 10px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.action-button .icon {
+    margin-right: 5px;
+    font-size: 16px;
+}
+
+.edit-button {
+    background-color: #E7F2FF; /* Light Blue */
+    color: #007AFF;
+    border: 1px solid #007AFF;
+}
+
+.delete-button {
+    background-color: #FEEFEF; /* Very Light Red */
+    color: #C00;
+    border: 1px solid #C00;
+}
+
+.no-results {
+    text-align: center;
+    color: #888;
+    padding: 20px;
+}
