@@ -1,12 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import Logo from "../assets/Logo.jpg"
-
-// Use Font Awesome classes instead of inline SVG
-// Make sure Font Awesome CSS is loaded in your index.html:
-// <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
-
-
+import Logo from "../assets/Logo.jpg";
 
 const Sidebar = ({ toggleSidebar, activeItem = "Booking Details", onNavigate }) => {
   const navigate = useNavigate();
@@ -15,7 +9,7 @@ const Sidebar = ({ toggleSidebar, activeItem = "Booking Details", onNavigate }) 
     { name: "Booking Details", icon: <i className="fas fa-bus"></i> },
     { name: "Chat", icon: <i className="fas fa-comment-dots"></i> },
     { name: "Predefined Messages", icon: <i className="fas fa-bullhorn"></i> },
-    { name: "New Bus Booking PreDefinedMessages", icon: <i className="fas fa-mobile-alt"></i> },
+    { name: "New Bus Booking Predefined Messages", icon: <i className="fas fa-mobile-alt"></i> }, 
     { name: "FAQS", icon: <i className="fas fa-question-circle"></i> },
     { name: "Offers", icon: <i className="fas fa-tag"></i> },
     { name: "Offers Predefined Messages", icon: <i className="fas fa-star"></i> },
@@ -39,7 +33,7 @@ const Sidebar = ({ toggleSidebar, activeItem = "Booking Details", onNavigate }) 
   return (
     <div className="sidebar d-flex flex-column text-white">
       {/* Profile */}
-      <div className="sidebar-profile text-center p-3 mt -3 border-bottom border-secondary">
+      <div className="sidebar-profile text-center p-3 mt-3 border-bottom border-secondary">
         <img
           src={Logo}
           alt="Logo"
@@ -70,20 +64,6 @@ const Sidebar = ({ toggleSidebar, activeItem = "Booking Details", onNavigate }) 
             </button>
           );
         })}
-
-        {/* Logout */}
-        {/* <div className="sidebar-logout mt-auto pt-2 border-top border-secondary px-2">
-          <button
-            className="menu-item d-flex align-items-center w-100 rounded-3 border-0 text-white text-start"
-            onClick={handleLogout}
-            style={{ backgroundColor: "#C62828", opacity: 0.9 }}
-          >
-            <span className="me-3 fs-5">
-              <i className="fas fa-sign-out-alt"></i>
-            </span>
-            <span className="fw-medium">Logout</span>
-          </button>
-        </div> */}
       </div>
     </div>
   );

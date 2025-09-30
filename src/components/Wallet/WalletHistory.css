@@ -1,0 +1,124 @@
+
+.min-h-screen {
+    min-height: 100vh;
+}
+.bg-gray-50 {
+    background-color: #f7f7f7; 
+}
+.font-sans {
+    font-family:'Times New Roman', Times, serif;
+}
+.container {
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+}
+.p-0 {
+    padding: 0;
+}
+.pb-10 {
+    padding-bottom: 2.5rem;
+}
+
+/* --- Header Component Styles --- */
+
+.header h1 {
+    font-size: 1.25rem; /* text-xl */
+    font-weight: 700; /* font-bold */
+    letter-spacing: 0.05em; /* tracking-wider */
+}
+.header svg {
+    height: 1.75rem; /* h-7 */
+    width: 1.75rem; /* w-7 */
+}
+
+/* --- Transaction History Card Styles --- */
+.transaction-history-card {
+    background-color: #fff; /* bg-white */
+    margin: 1rem; /* m-4 */
+    padding: 1.5rem; /* p-6 */
+    border-radius: 2rem; /* rounded-[2rem] */
+    /* ENHANCEMENT: Made the card shadow more pronounced */
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* Deeper shadow-2xl */
+    max-width: 32rem; /* max-w-lg */
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 2rem; /* mt-8 */
+    border: 1px solid #e5e5e5; /* Lighter border */
+}
+
+.transaction-history-card h2 {
+    font-size: 1.5rem; /* text-2xl */
+    font-weight: 900; /* font-black */
+    color: #1f2937; /* text-gray-900 */
+    margin-bottom: 1.5rem; /* mb-6 */
+    padding-bottom: 1rem; /* pb-4 */
+    border-bottom: 2px solid #ef4444; /* Solid red line for better contrast */
+    letter-spacing: -0.05em; /* tracking-tighter */
+}
+
+/* List Item Styles */
+.transaction-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 0.5rem; /* p-3 */
+    transition-duration: 0.2s;
+    /* ENHANCEMENT: Used a dashed line for a softer separator */
+    border-bottom: 1px dashed #e5e7eb; /* border-b border-gray-100 */
+}
+.transaction-item:last-child {
+    border-bottom: none; /* last:border-b-0 */
+}
+
+/* Icon Container Styles (Credit) */
+.icon-credit {
+    padding: 0.75rem; /* p-3 */
+    background-color: #d1fae5; /* bg-green-100 for better contrast */
+    border-radius: 0.75rem; /* rounded-xl */
+    color: #059669; /* text-green-600 */
+    box-shadow: inset 0 1px 3px 0 rgba(0, 0, 0, 0.1); /* shadow-inner subtle */
+}
+
+/* Icon Container Styles (Debit) */
+.icon-debit {
+    padding: 0.75rem; /* p-3 */
+    background-color: #fee2e2; /* bg-red-100 for better contrast */
+    border-radius: 0.75rem; /* rounded-xl */
+    color: #dc2626; /* text-red-600 */
+    box-shadow: inset 0 1px 3px 0 rgba(0, 0, 0, 0.1); /* shadow-inner subtle */
+}
+
+/* Amount Text Styles (Credit) */
+.amount-credit {
+    font-weight: 900; /* font-black */
+    letter-spacing: 0.05em; /* tracking-wider */
+    color: #059669; /* text-green-600 */
+}
+
+/* Amount Text Styles (Debit) */
+.amount-debit {
+    font-weight: 900; /* font-black */
+    letter-spacing: 0.05em; /* tracking-wider */
+    color: #dc2626; /* text-red-600 */
+}
+
+/* --- Mock Data Button Styles --- */
+.toggle-button {
+    width: 100%;
+    padding: 0.75rem; /* py-3 */
+    margin-top: 1rem; /* mt-4 */
+    text-align: center;
+    background-color: #ef4444; /* bg-red-500 */
+    color: #fff; /* text-white */
+    font-weight: 700; /* font-bold */
+    border-radius: 0.75rem; /* rounded-xl */
+    box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.5); /* shadow-lg with red color */
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.toggle-button:hover {
+    background-color: #dc2626; /* hover:bg-red-600 */
+    transform: scale(1.01); /* hover:scale-[1.01] */
+}

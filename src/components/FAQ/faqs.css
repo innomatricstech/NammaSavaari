@@ -1,0 +1,330 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+
+:root {
+    --color-primary-red: #E53935; /* Brighter Red */
+    --color-primary-dark: #B71C1C; /* Deep Red */
+    --color-accent-blue: #2196F3;
+    --color-background: #F4F6F9; /* Light Gray Background */
+    --color-card-bg: #FFFFFF;
+    --color-card-icon-bg: rgba(229, 57, 53, 0.1); 
+    --color-text-dark: #1E293B; 
+    --color-border: #E2E8F0;
+    --shadow-base: 0 4px 15px rgba(0, 0, 0, 0.08);
+    --shadow-hover: 0 12px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Base Styles */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin:0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    background-color: var(--color-background);
+    line-height: 1.6;
+    color: var(--color-text-dark);
+}
+
+.AppContainer {
+    min-height: 100vh;
+    background-color: var(--color-background);
+}
+
+/* --- 1. MODAL STYLES --- */
+.ModalContainer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+    transition: opacity 0.3s ease;
+}
+
+.ModalContent {
+    background: var(--color-card-bg);
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    text-align: center;
+    max-width: 90%;
+    width: 350px;
+    animation: fadeInScale 0.3s ease-out;
+}
+.ModalTitle {
+    color: var(--color-primary-red);
+    font-weight: 700;
+    margin-top: 0;
+    font-size: 1.4rem;
+}
+
+.ModalButton {
+    margin-top: 1.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.75rem;
+    background-color: var(--color-primary-red);
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s, transform 0.1s;
+}
+.ModalButton:hover {
+    background-color: var(--color-primary-dark);
+}
+@keyframes fadeInScale {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+
+/* --- 2. HEADER STYLES (List View) --- */
+
+
+/* --- 3. MAIN CONTENT LAYOUT --- */
+.MainContent {
+    max-width: 1200px; 
+    margin-left: auto;
+    margin-right: auto;
+    padding-bottom: 3rem; 
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
+
+/* List View Specific Padding */
+.list-view-content {
+    padding-top: 6.5rem; /* Space for fixed header */
+}
+
+/* Form View Specific Padding/Width */
+.form-view-content {
+    max-width: 600px;
+    padding-top: 2rem; 
+}
+
+
+/* --- 4. LIST VIEW STYLES (Grid) --- */
+.SectionTitle {
+    font-size: 2rem; 
+    font-weight: 800; 
+    margin-bottom: 3rem; 
+    color: var(--color-text-dark);
+    letter-spacing: -0.05em; 
+    text-align: center;
+}
+
+.GridContainer {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); 
+    gap: 1.25rem; 
+}
+
+@media (min-width: 768px) {
+    .GridContainer {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.5rem; 
+    }
+    .list-view-content {
+        padding-top: 7rem;
+    }
+}
+
+.TopicCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    background-color: var(--color-card-bg);
+    border: 1px solid var(--color-border); 
+    border-radius: 1.5rem; 
+    cursor: pointer;
+    padding: 2.5rem 1rem; 
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+    text-decoration: none;
+    color: inherit; 
+    box-shadow: var(--shadow-base);
+}
+
+.TopicCard:hover {
+    box-shadow: var(--shadow-hover); 
+    transform: translateY(-5px) scale(1.01);
+    border-color: var(--color-primary-red);
+}
+
+.IconWrapper {
+    width: 3.5rem; 
+    height: 3.5rem; 
+    margin-bottom: 1.25rem; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%; 
+    background-color: var(--color-card-icon-bg);
+    color: var(--color-primary-red);
+    box-shadow: 0 4px 10px rgba(229, 57, 53, 0.3); 
+}
+
+.IconWrapper svg {
+    width: 70%;
+    height: 70%;
+}
+
+.CardTitle {
+    font-size: 1.1rem; 
+    font-weight: 700; 
+    color: var(--color-text-dark);
+    margin: 0;
+}
+
+
+/* --- 5. FORM VIEW STYLES --- */
+.FormCard {
+    background-color: var(--color-card-bg);
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: var(--shadow-base);
+    border: 1px solid var(--color-border);
+}
+
+.FormHeader {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+/* Custom Back Button in Form Header (overrides primary HeaderButton for this view) */
+.FormHeader .HeaderButton {
+    color: var(--color-text-dark); 
+    background: transparent;
+    border: none;
+    margin-right: 1rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+}
+.FormHeader .HeaderButton:hover {
+    color: var(--color-primary-red);
+    background: rgba(229, 57, 53, 0.05);
+    border-color: transparent;
+    transform: translateX(-4px);
+}
+.FormHeader .HeaderButton svg {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.FormTitle {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--color-text-dark);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.FormLabel {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-text-dark);
+    margin-bottom: 0.5rem;
+    margin-top: 1rem;
+}
+
+.FormInput, .FormTextarea {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.75rem;
+    font-size: 1rem;
+    color: var(--color-text-dark);
+    box-sizing: border-box;
+    background-color: var(--color-background);
+    resize: vertical; 
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.FormInput::placeholder, .FormTextarea::placeholder {
+    color: #94A3B8;
+}
+
+.FormInput:focus, .FormTextarea:focus {
+    outline: none;
+    border-color: var(--color-accent-blue);
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.2);
+    background-color: white;
+}
+
+.FormTextarea {
+    min-height: 150px; 
+}
+
+.FormActions {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.FormButton {
+    padding: 1rem;
+    border-radius: 0.75rem;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+    border: none;
+}
+.FormButton svg {
+    color: white;
+}
+
+/* Primary Button (Save) */
+.FormButton.primary {
+    background-color: var(--color-primary-red); 
+    color: white; 
+    box-shadow: 0 4px 15px rgba(229, 57, 53, 0.4);
+}
+.FormButton.primary:hover {
+    background-color: var(--color-primary-dark);
+    box-shadow: 0 6px 20px rgba(229, 57, 53, 0.6);
+}
+
+/* Secondary Button (Upload) */
+.FormButton.secondary {
+    background-color: #4CAF50; /* Green */
+    color: white;
+    box-shadow: 0 4px 10px rgba(76, 175, 80, 0.4);
+}
+.FormButton.secondary svg {
+    color: white;
+}
+.FormButton.secondary:hover {
+    background-color: #388E3C;
+}
+
+/* Tertiary Button (View FAQs) */
+.FormButton.tertiary {
+    background-color: #03A9F4; /* Light Blue */
+    color: white;
+    box-shadow: 0 4px 10px rgba(3, 169, 244, 0.4);
+}
+.FormButton.tertiary svg {
+    color: white;
+}
+.FormButton.tertiary:hover {
+    background-color: #0288D1;
+}
+
+.FormButton:active {
+    transform: scale(0.98);
+}

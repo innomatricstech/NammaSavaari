@@ -59,8 +59,7 @@ const BookingDetailsView = ({ booking }) => {
         ["Ticket Status", tripDetails.ticketStatus],
         ["Ticket Amount", formatCurrency(booking.ticketAmount)],
         ["Convenience Fee", formatCurrency(booking.gstCharged)],
-        ["Platform Commission", formatCurrency(booking.platformCommission)],
-        ["TCS Collected", formatCurrency(booking.tcsCollected)],
+
         ["Payment Mode", booking.paymentDetails || "N/A"],
         ["Total Amount Paid", formatCurrency(booking.totalAmount)],
       ],

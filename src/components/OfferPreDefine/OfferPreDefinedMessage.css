@@ -1,0 +1,83 @@
+/* ---------------- App Container ---------------- */
+.app-container {
+    min-height: 100vh;
+    background: #f9fafb;
+    font-family: 'Inter', sans-serif;
+    padding-bottom: 50px;
+}
+
+/* ---------------- Header ---------------- */
+/* ---------------- Header ---------------- */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    /* position: sticky; */  /* removed */
+    /* top: 0; */            /* removed */
+    z-index: 10;
+}
+
+
+
+/* ---------------- Search Bar ---------------- */
+.search-bar {
+    display: flex; align-items: center;
+    margin: 1rem 1rem;
+    background: #fff;
+    border-radius: 1rem;
+    padding: 0.5rem 1rem;
+    transition: box-shadow 0.2s;
+}
+.search-bar:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.search-bar input { border: none; outline: none; flex: 1; font-size: 1rem; background: transparent; }
+.search-icon { width: 1.25rem; height: 1.25rem; margin-right: 0.5rem; color: #9ca3af; }
+
+/* ---------------- Offer Form ---------------- */
+.offer-form {
+    background: #fff; margin: 1rem 2rem; padding: 2rem;
+   
+}
+.offer-form h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem; color: #1f2937; }
+.offer-form input, .offer-form textarea {
+    width: 100%; padding: 0.75rem 1rem; margin-bottom: 1rem; border-radius: 1rem; border: 1px solid #e5e7eb;
+    font-size: 1rem; outline: none; transition: all 0.2s; background: #fefefe;
+}
+.offer-form input:focus, .offer-form textarea:focus { border-color: #d50000; box-shadow: 0 0 8px rgba(213,0,0,0.2); }
+
+.form-buttons { display: flex; gap: 1rem; }
+.btn-primary { flex: 1; padding: 0.75rem; background: linear-gradient(90deg, #e53935, #d50000); color: #fff; font-weight: 700; border-radius: 1rem; transition: all 0.2s; cursor: pointer; }
+.btn-primary:hover { transform: scale(1.02); box-shadow: 0 6px 16px rgba(213,0,0,0.35); }
+.btn-secondary { flex: 0.4; padding: 0.75rem; background: #e5e7eb; color: #374151; font-weight: 700; border-radius: 1rem; transition: all 0.2s; cursor: pointer; }
+.btn-secondary:hover { background: #d1d5db; transform: scale(1.02); }
+
+/* ---------------- Offer Items ---------------- */
+.offers-list { margin: 2rem; display: flex; flex-direction: column; gap: 1rem; }
+.offer-item { background: #fff; padding: 1.5rem; border-radius: 1.25rem; box-shadow: 0 6px 18px rgba(0,0,0,0.08); transition: all 0.2s; }
+.offer-item:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+
+.offer-question { font-weight: 700; color: #1f2937; margin-bottom: 0.5rem; }
+.offer-details { color: #4b5563; white-space: pre-wrap; }
+.offer-actions { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem; }
+.btn-edit { background: #3b82f6; color: #fff; padding: 0.5rem 1rem; border-radius: 9999px; transition: all 0.2s; cursor: pointer; }
+.btn-edit:hover { transform: scale(1.05); }
+.btn-delete { background: #ef4444; color: #fff; padding: 0.5rem 1rem; border-radius: 9999px; transition: all 0.2s; cursor: pointer; }
+.btn-delete:hover { transform: scale(1.05); }
+
+/* ---------------- Loading Screen ---------------- */
+.loading-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; background: #f9fafb; }
+.spinner { width: 3rem; height: 3rem; border: 4px solid #ef4444; border-top: 4px solid transparent; border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------------- Error ---------------- */
+.error-msg { margin: 1rem 2rem; padding: 1rem; background: #fee2e2; color: #b91c1c; border-left: 4px solid #f87171; border-radius: 0.75rem; }
+
+/* ---------------- No Offers ---------------- */
+.no-offers { text-align: center; padding: 2rem; color: #6b7280; font-style: italic; }
+
+/* ---------------- Responsive ---------------- */
+@media (max-width: 768px) {
+    .header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+    .search-bar, .offer-form, .offers-list { margin: 1rem; }
+}

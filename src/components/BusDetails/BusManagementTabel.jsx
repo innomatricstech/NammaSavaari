@@ -1,3 +1,4 @@
+
 // BusManagementTable.jsx
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
@@ -20,8 +21,6 @@ const generateMockBookings = (count) => {
   for (let i = 1; i <= count; i++) {
     const amount = Math.floor(Math.random() * 2000) + 1000;
     const gst = amount * 0.05; 
-    const commission = amount * 0.08;
-    const tcs = amount * 0.01;
 
     data.push({
       id: `BKG-${1000 + i}`,
@@ -31,9 +30,7 @@ const generateMockBookings = (count) => {
       paymentDetails: paymentModes[i % paymentModes.length],
       ticketAmount: amount,
       gstCharged: gst, 
-      platformCommission: commission,
-      tcsCollected: tcs,
-      totalAmount: amount + gst + commission + tcs,
+      totalAmount: amount + gst,
     });
   }
   return data;
@@ -58,9 +55,7 @@ const BusManagementTable = () => {
     { key: "passengerName", label: "Passenger Name" },
     { key: "operatorName", label: "Operator Name" },
     { key: "ticketAmount", label: "Ticket Amount" },
-    { key: "convensionfee", label: "Convension Fee" },
-    { key: "platformCommission", label: "Platform Commission" },
-    { key: "tcsCollected", label: "TCS Collected" },
+    { key: "convensionfee", label: "Convenience Fee" },
     { key: "paymentMode", label: "Payment Mode" },
     { key: "totalAmount", label: "Total Amount" },
     { key: "actions", label: "Actions" },
@@ -116,116 +111,97 @@ const BusManagementTable = () => {
 
   // --- Export PDF ---
   const handleExportPDF = useCallback(() => {
-  try {
-    const doc = new jsPDF();
-    const sortedBookings = [...filteredBookings].sort((a, b) => new Date(a.bookingDate) - new Date(b.bookingDate));
+    try {
+      const doc = new jsPDF();
+      const sortedBookings = [...filteredBookings].sort((a, b) => new Date(a.bookingDate) - new Date(b.bookingDate));
 
-    const headers = [[
-      "Date of Booking",
-      "Passenger Name",
-      "Operator Name",
-      "Ticket Amount",
-      "Convenience Fee",
-      "Platform Commission",
-      "TCS Collected",
-      "Payment Mode",
-      "Total Amount"
-    ]];
+      const headers = [[
+        "Date of Booking",
+        "Passenger Name",
+        "Operator Name",
+        "Ticket Amount",
+        "Convenience Fee",
+        "Payment Mode",
+        "Total Amount"
+      ]];
 
-    const data = sortedBookings.map(b => [
-      b.bookingDate || "N/A",
-      b.passengerName || "N/A",
-      b.operatorName || "N/A",
-      b.ticketAmount != null ? `$${b.ticketAmount.toFixed(2)}` : "N/A",
-      b.gstCharged != null ? `$${b.gstCharged.toFixed(2)}` : "N/A",
-      b.platformCommission != null ? `$${b.platformCommission.toFixed(2)}` : "N/A",
-      b.tcsCollected != null ? `$${b.tcsCollected.toFixed(2)}` : "N/A",
-      b.paymentDetails || "N/A",
-      b.totalAmount != null ? `$${b.totalAmount.toFixed(2)}` : "N/A",
-    ]);
+      const data = sortedBookings.map(b => [
+        b.bookingDate || "N/A",
+        b.passengerName || "N/A",
+        b.operatorName || "N/A",
+        b.ticketAmount != null ? `$${b.ticketAmount.toFixed(2)}` : "N/A",
+        b.gstCharged != null ? `$${b.gstCharged.toFixed(2)}` : "N/A",
+        b.paymentDetails || "N/A",
+        b.totalAmount != null ? `$${b.totalAmount.toFixed(2)}` : "N/A",
+      ]);
 
-    // --- Calculate Totals ---
-    const totals = {
-      ticketAmount: sortedBookings.reduce((sum, b) => sum + (b.ticketAmount || 0), 0),
-      gstCharged: sortedBookings.reduce((sum, b) => sum + (b.gstCharged || 0), 0),
-      platformCommission: sortedBookings.reduce((sum, b) => sum + (b.platformCommission || 0), 0),
-      tcsCollected: sortedBookings.reduce((sum, b) => sum + (b.tcsCollected || 0), 0),
-      totalAmount: sortedBookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0),
-    };
+      // --- Totals ---
+      const totals = {
+        ticketAmount: sortedBookings.reduce((sum, b) => sum + (b.ticketAmount || 0), 0),
+        gstCharged: sortedBookings.reduce((sum, b) => sum + (b.gstCharged || 0), 0),
+        totalAmount: sortedBookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0),
+      };
 
-    // --- Append totals row ---
-    data.push([
-      "—", "—", "Overall Totals →",
-      `$${totals.ticketAmount.toFixed(2)}`,
-      `$${totals.gstCharged.toFixed(2)}`,
-      `$${totals.platformCommission.toFixed(2)}`,
-      `$${totals.tcsCollected.toFixed(2)}`,
-      "—",
-      `$${totals.totalAmount.toFixed(2)}`
-    ]);
+      data.push([
+        "—", "—", "Overall Totals →",
+        `$${totals.ticketAmount.toFixed(2)}`,
+        `$${totals.gstCharged.toFixed(2)}`,
+        "—",
+        `$${totals.totalAmount.toFixed(2)}`
+      ]);
 
-    autoTable(doc, {
-      head: headers,
-      body: data,
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [52, 58, 64] },
-      margin: { top: 20 },
-    });
+      autoTable(doc, {
+        head: headers,
+        body: data,
+        styles: { fontSize: 8 },
+        headStyles: { fillColor: [52, 58, 64] },
+        margin: { top: 20 },
+      });
 
-    doc.save("Bus_Bookings_Detailed.pdf");
-  } catch (error) {
-    console.error("PDF generation failed:", error);
-    alert("Failed to generate PDF. Please check the console for details.");
-  }
-}, [filteredBookings]);
-
+      doc.save("Bus_Bookings_Detailed.pdf");
+    } catch (error) {
+      console.error("PDF generation failed:", error);
+      alert("Failed to generate PDF. Please check the console for details.");
+    }
+  }, [filteredBookings]);
 
   // --- Export Excel ---
   const handleExportExcel = useCallback(() => {
-  const sortedBookings = [...filteredBookings].sort((a, b) => new Date(a.bookingDate) - new Date(b.bookingDate));
+    const sortedBookings = [...filteredBookings].sort((a, b) => new Date(a.bookingDate) - new Date(b.bookingDate));
 
-  const dataToExport = sortedBookings.map(b => ({
-    "Date of Booking": b.bookingDate,
-    "Passenger Name": b.passengerName || "N/A",
-    "Operator Name": b.operatorName,
-    "Ticket Amount": b.ticketAmount,
-    "Convenience Fee": b.gstCharged,
-    "Platform Commission": b.platformCommission,
-    "TCS Collected": b.tcsCollected,
-    "Payment Mode": b.paymentDetails,
-    "Total Amount": b.totalAmount,
-  }));
+    const dataToExport = sortedBookings.map(b => ({
+      "Date of Booking": b.bookingDate,
+      "Passenger Name": b.passengerName || "N/A",
+      "Operator Name": b.operatorName,
+      "Ticket Amount": b.ticketAmount,
+      "Convenience Fee": b.gstCharged,
+      "Payment Mode": b.paymentDetails,
+      "Total Amount": b.totalAmount,
+    }));
 
-  // --- Calculate Totals ---
-  const totals = {
-    ticketAmount: sortedBookings.reduce((sum, b) => sum + (b.ticketAmount || 0), 0),
-    gstCharged: sortedBookings.reduce((sum, b) => sum + (b.gstCharged || 0), 0),
-    platformCommission: sortedBookings.reduce((sum, b) => sum + (b.platformCommission || 0), 0),
-    tcsCollected: sortedBookings.reduce((sum, b) => sum + (b.tcsCollected || 0), 0),
-    totalAmount: sortedBookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0),
-  };
+    const totals = {
+      ticketAmount: sortedBookings.reduce((sum, b) => sum + (b.ticketAmount || 0), 0),
+      gstCharged: sortedBookings.reduce((sum, b) => sum + (b.gstCharged || 0), 0),
+      totalAmount: sortedBookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0),
+    };
 
-  // --- Append totals row ---
-  dataToExport.push({
-    "Date of Booking": "",
-    "Passenger Name": "",
-    "Operator Name": "Overall Totals →",
-    "Ticket Amount": totals.ticketAmount,
-    "Convenience Fee": totals.gstCharged,
-    "Platform Commission": totals.platformCommission,
-    "TCS Collected": totals.tcsCollected,
-    "Payment Mode": "",
-    "Total Amount": totals.totalAmount,
-  });
+    dataToExport.push({
+      "Date of Booking": "",
+      "Passenger Name": "",
+      "Operator Name": "Overall Totals →",
+      "Ticket Amount": totals.ticketAmount,
+      "Convenience Fee": totals.gstCharged,
+      "Payment Mode": "",
+      "Total Amount": totals.totalAmount,
+    });
 
-  const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Bookings");
-  const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-  const data = new Blob([excelBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8" });
-  saveAs(data, "Bus_Bookings_Detailed.xlsx");
-}, [filteredBookings]);
-
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Bookings");
+    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    const data = new Blob([excelBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8" });
+    saveAs(data, "Bus_Bookings_Detailed.xlsx");
+  }, [filteredBookings]);
 
   const renderPaginationButtons = () => {
     const buttons = [];
@@ -300,8 +276,6 @@ const BusManagementTable = () => {
                   <td>{b.operatorName}</td>
                   <td>{formatCurrency(b.ticketAmount)}</td>
                   <td>{formatCurrency(b.gstCharged)}</td>
-                  <td>{formatCurrency(b.platformCommission)}</td>
-                  <td>{formatCurrency(b.tcsCollected)}</td>
                   <td>{b.paymentDetails}</td>
                   <td>{formatCurrency(b.totalAmount)}</td>
                   <td>
