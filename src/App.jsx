@@ -12,38 +12,41 @@ import {
 import Sidebar from "./components/Sidebar";
 import TopHeader from "./components/TopHeader";
 import BusManagementTable from "./components/BusDetails/BusManagementTabel";
-import ChatScreen from "./components/Chat/Chat";
-import ChatDetail from "./components/Chat/ChatDetails";
+import BusBookingDetails from "./components/BusDetails/BookingDetailsView"
+// import ChatScreen from "./components/Chat/Chat";
+// import ChatDetail from "./components/Chat/ChatDetails";
 import Logout from "./components/Logout";
 import Login from "./components/Login";
-import PredefinedMessagesScreen from "./components/PreDefineMgs/PreDefineMessage";
-import NewBusPreDefinedMessage from "./components/NewBusPreDefineMgs/NewBusPreDefineMessage";
+// import PredefinedMessagesScreen from "./components/PreDefineMgs/PreDefineMessage";
+// import NewBusPreDefinedMessage from "./components/NewBusPreDefineMgs/NewBusPreDefineMessage";
 import FAQS from "./components/FAQ/faqs";
 import Offers from "./components/Offers/Offers";
-import OffersPredefinedMessages from "./components/OfferPreDefine/OfferPreDenfinedMessage";
-import AdminUploadingYouTubeVideos from "./components/AdminVideo/AdminVideo";
+// import OffersPredefinedMessages from "./components/OfferPreDefine/OfferPreDenfinedMessage";
+// import AdminUploadingYouTubeVideos from "./components/AdminVideo/AdminVideo";
 import AdminUploadingShortVideos from "./components/ShortVideo/ShortVideo";
-import Wallet from "./components/Wallet/Wallet";
-import WalletHistoryPage from "./components/Wallet/WalletHistory";
+// import Wallet from "./components/Wallet/Wallet";
+// import WalletHistoryPage from "./components/Wallet/WalletHistory";
 import CommissionSettingsPage from "./components/Commission/Commission";
-
+import HelpLine from "./Helpline";
 
 import "./App.css";
 
 // --- Component Mapping for Sidebar Navigation ---
 const MenuItemToRoute = {
   "Booking Details": "/dashboard/bus-management",
-  Chat: "/dashboard/chat",
-  "Predefined Messages": "/dashboard/predefined-messages",
-  "New Bus Booking Predefined Messages": "/dashboard/newbus-predefined-messages",
+  "View Details":"/dashboard/booking-details", 
+  // Chat: "/dashboard/chat",
+  // // "Predefined Messages": "/dashboard/predefined-messages",
+  // "New Bus Booking Predefined Messages": "/dashboard/newbus-predefined-messages",
   FAQS : "/dashboard/faqs",
   Offers : "/dashboard/Offers",
-  "Offers Predefined Messages" : "/dashboard/offersPreDefined",
-  "Upload Youtube Videos":"/dashboard/adminvideo-upload",
+  // "Offers Predefined Messages" : "/dashboard/offersPreDefined",
+  // "Upload Youtube Videos":"/dashboard/adminvideo-upload",
   "Short Video Upload":"/dashboard/shortvideo-upload",
-  "Wallet":"/dashboard/wallet",
-  "Wallet History":"/dashboard/wallethistory",
-  "Commission":"/dashboard/commission"
+  // "Wallet":"/dashboard/wallet",
+  // "Wallet History":"/dashboard/wallethistory",
+  "Commission":"/dashboard/commission",
+  "Helpline":"/dashboard/helpline"
 };
 
 // Reverse mapping for highlighting active menu
@@ -95,8 +98,14 @@ const AppContent = () => {
       : currentRoute.split('?')[0];
 
     let item = RouteToMenuItem[normalizedRoute];
+    
+    // Logic for parameterized routes (Chat Detail, Booking Detail)
     if (!item && currentRoute.startsWith("/dashboard/chat/")) {
       item = "Chat";
+    }
+    // ADDED: Logic to set active item when on a specific booking detail view
+    if (!item && currentRoute.startsWith("/dashboard/booking-details/")) {
+        item = "Booking Details"; // Or whatever parent item you want highlighted
     }
 
     setActiveItem(item || "Booking Details");
@@ -170,6 +179,19 @@ const AppContent = () => {
             </ProtectedRoute>
           }
         />
+       <Route 
+  path="/dashboard/booking-details" 
+  element={
+    <ProtectedRoute>
+      <DashboardLayout>
+        <BusBookingDetails />
+      </DashboardLayout>
+    </ProtectedRoute>
+  } 
+/>
+
+     
+{/* 
         <Route
           path="/dashboard/chat"
           element={
@@ -179,8 +201,8 @@ const AppContent = () => {
               </DashboardLayout>
             </ProtectedRoute>
           }
-        />
-        <Route
+        /> */}
+        {/* <Route
           path="/dashboard/chat/:customerId"
           element={
             <ProtectedRoute>
@@ -189,8 +211,8 @@ const AppContent = () => {
               </DashboardLayout>
             </ProtectedRoute>
           }
-        />
-        <Route
+        /> */}
+        {/* <Route
           path="/dashboard/predefined-messages"
           element={
             <ProtectedRoute>
@@ -209,7 +231,7 @@ const AppContent = () => {
               </DashboardLayout>
             </ProtectedRoute>
           }
-        />
+        /> */}
           <Route
           path="/dashboard/faqs"
           element={
@@ -220,7 +242,7 @@ const AppContent = () => {
             </ProtectedRoute>
           }
         />
-         <Route
+          <Route
           path="/dashboard/Offers"
           element={
             <ProtectedRoute>
@@ -230,7 +252,7 @@ const AppContent = () => {
             </ProtectedRoute>
           }
         />
-         <Route
+          {/* <Route
           path="/dashboard/offersPreDefined"
           element={
             <ProtectedRoute>
@@ -239,8 +261,8 @@ const AppContent = () => {
               </DashboardLayout>
             </ProtectedRoute>
           }
-        />
-           <Route
+        /> */}
+            {/* <Route
           path="/dashboard/adminvideo-upload"
           element={
             <ProtectedRoute>
@@ -249,7 +271,7 @@ const AppContent = () => {
               </DashboardLayout>
             </ProtectedRoute>
           }
-        />
+        /> */}
           <Route
           path="/dashboard/shortvideo-upload"
           element={
@@ -260,7 +282,7 @@ const AppContent = () => {
             </ProtectedRoute>
           }
         />
-         <Route
+          {/* <Route
           path="/dashboard/wallet"
           element={
             <ProtectedRoute>
@@ -279,8 +301,8 @@ const AppContent = () => {
               </DashboardLayout>
             </ProtectedRoute>
           }
-        />
-         <Route
+        /> */}
+          <Route
           path="/dashboard/commission"
           element={
             <ProtectedRoute>
@@ -290,11 +312,16 @@ const AppContent = () => {
             </ProtectedRoute>
           }
         />
-
-
-
-
-        
+         <Route
+          path="/dashboard/helpline"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <HelpLine/>
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
 
         {/* --- Redirects --- */}
         <Route path="/" element={<Navigate to="/login" replace />} />

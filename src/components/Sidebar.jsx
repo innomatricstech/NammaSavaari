@@ -1,23 +1,25 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import Logo from "../assets/Logo.jpg";
+import Logo from "../assets/Namma Savaari.png";
+import "../App.css"
 
 const Sidebar = ({ toggleSidebar, activeItem = "Booking Details", onNavigate }) => {
   const navigate = useNavigate();
 
   const menuItems = [
     { name: "Booking Details", icon: <i className="fas fa-bus"></i> },
-    { name: "Chat", icon: <i className="fas fa-comment-dots"></i> },
-    { name: "Predefined Messages", icon: <i className="fas fa-bullhorn"></i> },
-    { name: "New Bus Booking Predefined Messages", icon: <i className="fas fa-mobile-alt"></i> }, 
+    // { name: "Chat", icon: <i className="fas fa-comment-dots"></i> },
+    // { name: "Predefined Messages", icon: <i className="fas fa-bullhorn"></i> },
+    // { name: "New Bus Booking Predefined Messages", icon: <i className="fas fa-mobile-alt"></i> }, 
     { name: "FAQS", icon: <i className="fas fa-question-circle"></i> },
     { name: "Offers", icon: <i className="fas fa-tag"></i> },
-    { name: "Offers Predefined Messages", icon: <i className="fas fa-star"></i> },
-    { name: "Upload Youtube Videos", icon: <i className="fab fa-youtube"></i> },
+    // { name: "Offers Predefined Messages", icon: <i className="fas fa-star"></i> },
+    // { name: "Upload Youtube Videos", icon: <i className="fab fa-youtube"></i> },
     { name: "Short Video Upload", icon: <i className="fas fa-video"></i> },
-    { name: "Wallet", icon: <i className="fas fa-wallet"></i> },
-    { name: "Wallet History", icon: <i className="fas fa-history"></i> },
+    // { name: "Wallet", icon: <i className="fas fa-wallet"></i> },
+    // { name: "Wallet History", icon: <i className="fas fa-history"></i> },
     { name: "Commission", icon: <i className="fas fa-wallet"></i> },
+     { name: "Helpline", icon: <i className="fas fa-phone"></i> },
   ];
 
   const handleMenuItemClick = (itemName) => {
@@ -33,16 +35,16 @@ const Sidebar = ({ toggleSidebar, activeItem = "Booking Details", onNavigate }) 
   return (
     <div className="sidebar d-flex flex-column text-white">
       {/* Profile */}
-      <div className="sidebar-profile text-center p-3 mt-3 border-bottom border-secondary">
+      <div className="sidebar-profile ">
         <img
           src={Logo}
           alt="Logo"
-          className="rounded-circle mb-2"
-          style={{ width: "64px", height: "64px", objectFit: "cover" }}
+          className="logo mb-2"
+          style={{ width: "130px", height: "95px", objectFit: "cover" }}
         />
-        <div className="fw-bold">Innomatrics</div>
-        <div className="small opacity-75">Innotech@gmail.com</div>
-        <div className="text-warning small mt-1 d-flex justify-content-center align-items-center">
+        <div className="fw-bold">Namma Savaari</div>
+        <div className="small opacity-75">Nammasavaari1@gmail.com</div>
+        <div className="text-success small mt-1 d-flex justify-content-center align-items-center">
           <span className="me-1">●</span> Active
         </div>
       </div>

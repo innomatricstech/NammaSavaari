@@ -1,313 +1,436 @@
-
-// BusManagementTable.jsx
-
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import "bootstrap/dist/css/bootstrap.min.css";
-import { Eye } from "lucide-react"; 
-import * as XLSX from "xlsx";
-import { saveAs } from "file-saver";
-import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
-import CustomModal from "./CustomModal";
+import { Eye } from "lucide-react";
+// import { useNavigate } from "react-router-dom"; // REMOVE or COMMENT OUT if not using routing
+
+import CustomModal from "./CustomModal"; 
 import BookingDetailsView from "./BookingDetailsView";
 
-// --- Mock Data Generation ---
-const generateMockBookings = (count) => {
-  const data = [];
-  const operators = ["RedBus Tours", "VRL Logistics", "KSRTC Premium", "Zing Bus", "SkyNet Travels"];
-  const paymentModes = ["Card", "UPI", "Net Banking", "Wallet"];
-  const passengers = ["John Smith","Alice Johnson","Robert Brown","Emily Davis","Michael Wilson","Sarah Lee","David Kim","Jessica Chen"];
+// Firebase imports (keep these)
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getFirestore, collection, onSnapshot, setLogLevel, doc, getDoc } from "firebase/firestore";
+import { getAuth, signInAnonymously, signInWithCustomToken } from "firebase/auth";
 
-  for (let i = 1; i <= count; i++) {
-    const amount = Math.floor(Math.random() * 2000) + 1000;
-    const gst = amount * 0.05; 
-
-    data.push({
-      id: `BKG-${1000 + i}`,
-      bookingDate: `2025-09-${String(i % 30 + 1).padStart(2, "0")}`,
-      passengerName: i % 8 === 0 ? null : passengers[i % 8],
-      operatorName: operators[i % operators.length],
-      paymentDetails: paymentModes[i % paymentModes.length],
-      ticketAmount: amount,
-      gstCharged: gst, 
-      totalAmount: amount + gst,
-    });
+// External libraries (loaded via CDN) (keep these)
+const XLSX = window.XLSX;
+const saveAs = window.saveAs;
+const jsPDF = window.jsPDF;
+const autoTable = (doc, options) => {
+  if (window.jspdf && window.jspdf.autoTable) {
+    window.jspdf.autoTable(doc, options);
+  } else if (window.autoTable) {
+    window.autoTable(doc, options);
+  } else {
+    console.error("jsPDF-autotable not loaded.");
   }
-  return data;
 };
 
-const formatCurrency = (value) => (value != null ? `$${value.toFixed(2)}` : "N/A");
+// ---------- Helpers ---------- (keep these)
+const parseTimestampToDate = (val) => {
+  if (!val) return null;
+  if (typeof val.toDate === "function") return val.toDate();
+  if (val.seconds) return new Date(val.seconds * 1000);
+  if (val._seconds) return new Date(val._seconds * 1000);
+  if (typeof val === "string") return new Date(val);
+  if (typeof val === "number") return new Date(val);
+  return null;
+};
 
-// --- Main Component ---
+const formatDateTime = (date) => (date ? date.toLocaleString() : "N/A");
+const formatCurrency = (value) =>
+  value != null && !isNaN(Number(value)) ? `₹${Number(value).toLocaleString("en-IN")}` : "₹0";
+
+// ---------- Component ----------
 const BusManagementTable = () => {
+  // const navigate = useNavigate(); // REMOVE or COMMENT OUT if not using routing
+
+  // State
+  const [dbInstance, setDbInstance] = useState(null);
+  const [authInstance, setAuthInstance] = useState(null);
   const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  
+  // NEW STATE FOR MODAL
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
-  const [modalConfig, setModalConfig] = useState({});
 
-  const headers = useMemo(() => ([
-    { key: "bookingDate", label: "Date of Booking" },
-    { key: "passengerName", label: "Passenger Name" },
-    { key: "operatorName", label: "Operator Name" },
-    { key: "ticketAmount", label: "Ticket Amount" },
-    { key: "convensionfee", label: "Convenience Fee" },
-    { key: "paymentMode", label: "Payment Mode" },
-    { key: "totalAmount", label: "Total Amount" },
-    { key: "actions", label: "Actions" },
-  ]), []);
+  // Headers (keep these)
+  const headers = useMemo(
+    () => [
+      { key: "dateOfBooking", label: "Date of Booking" },
+      { key: "passengerName", label: "Passenger Name" },
+      { key: "operatorName", label: "Operator Name" },
+      { key: "ticketAmount", label: "Ticket Amount" },
+      { key: "convenienceFee", label: "Convenience Fee" },
+      { key: "paymentMode", label: "Payment Mode" },
+      { key: "totalAmount", label: "Total Amount" },
+      { key: "actions", label: "Actions" },
+    ],
+    []
+  );
 
+  // ---------- Initialize Firebase ---------- (keep these)
   useEffect(() => {
-    setBookings(generateMockBookings(100));
+    try {
+      setLogLevel("Debug");
+      let rawCfg = typeof __firebase_config !== "undefined" ? __firebase_config : window.__firebase_config;
+      let parsedCfg = rawCfg ? (typeof rawCfg === "string" ? JSON.parse(rawCfg) : rawCfg) : {};
+
+      if (parsedCfg && Object.keys(parsedCfg).length > 0) {
+        let app = !getApps().length ? initializeApp(parsedCfg) : getApp();
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        setDbInstance(db);
+        setAuthInstance(auth);
+
+        const authAttempt = async () => {
+          try {
+            if (typeof __initial_auth_token !== "undefined") {
+              await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+              await signInAnonymously(auth);
+            }
+          } catch (err) {
+            console.error("Firebase Auth sign-in failed:", err);
+          }
+        };
+        authAttempt();
+        return;
+      }
+
+      if (window.__FIREBASE_DB) {
+        setDbInstance(window.__FIREBASE_DB);
+        if (window.__FIREBASE_AUTH) setAuthInstance(window.__FIREBASE_AUTH);
+        return;
+      }
+
+      setLoading(false);
+      console.warn("No Firebase config found. Table will not fetch data.");
+    } catch (err) {
+      console.error("Error during Firebase initialization:", err);
+      setLoading(false);
+    }
   }, []);
 
-  const handlePageChange = (page) => setCurrentPage(page);
-  const handleEntriesPerPageChange = (e) => {
-    setEntriesPerPage(Number(e.target.value));
-    setCurrentPage(1);
-  };
+  // ---------- Fetch bookings ---------- (keep these)
+  useEffect(() => {
+    if (!dbInstance) return;
 
-  // --- Filtering and Pagination Logic ---
+    setLoading(true);
+    const bookingsRef = collection(dbInstance, "all_bookings");
+    const unsubscribe = onSnapshot(
+      bookingsRef,
+      async (snapshot) => {
+        const rawDocs = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+        const userIds = [...new Set(rawDocs.map((d) => d.userId).filter(Boolean))];
+        const customerNameMap = {};
+
+        if (userIds.length > 0) {
+          await Promise.all(
+            userIds.map(async (id) => {
+              try {
+                const customerDocRef = doc(dbInstance, "customers", id);
+                const customerDoc = await getDoc(customerDocRef);
+                customerNameMap[id] = customerDoc.exists() ? customerDoc.data().name || id : `User ID: ${id}`;
+              } catch (err) {
+                console.error("Customer fetch error:", id, err);
+                customerNameMap[id] = `Error: ${id}`;
+              }
+            })
+          );
+        }
+
+        const enrichedDocs = rawDocs.map((data) => {
+          const bookingTime = parseTimestampToDate(data.bookingTime || data.createdAt);
+          const ticketAmount = Number(data.ticketAmount || data.amount || 0);
+          const convenienceFee = Number(data.convenienceFee || data.ConvenienceFee || 0);
+          const totalAmount = ticketAmount + convenienceFee;
+          const passengerName = data.userId ? customerNameMap[data.userId] : data.name || "N/A";
+
+          return {
+            id: data.id,
+            dateOfBooking: bookingTime ? formatDateTime(bookingTime) : "N/A",
+            passengerName,
+            operatorName: data.travelName || "N/A",
+            ticketAmount,
+            convenienceFee,
+            totalAmount,
+            pnr: data.pnr || "N/A",
+            ticketNumber: data.ticketNumber || "N/A",
+            bookingStatus: data.bookingStatus || "N/A",
+            paymentMode: data.paymentMode || "Online",
+            userId: data.userId || "N/A",
+            raw: data,
+            
+         
+          };
+        });
+
+        setBookings(enrichedDocs);
+        setLoading(false);
+      },
+      (err) => {
+        console.error("Firestore onSnapshot error:", err);
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [dbInstance]);
+
+  // ---------- Filtering & Pagination ---------- (keep these)
   const { filteredBookings, paginatedBookings, totalEntries, totalPages, startEntry, endEntry } = useMemo(() => {
-    let currentBookings = bookings;
+    let current = bookings;
 
     if (searchTerm) {
-      const lowerCaseSearch = searchTerm.toLowerCase();
-      currentBookings = currentBookings.filter(b =>
-        Object.values(b).some(value =>
-          String(value).toLowerCase().includes(lowerCaseSearch)
-        )
-      );
+      const lower = searchTerm.toLowerCase();
+      current = current.filter((b) => Object.values(b).some((v) => String(v).toLowerCase().includes(lower)));
     }
 
     if (startDate || endDate) {
-      currentBookings = currentBookings.filter(b => {
-        const bookingTimestamp = new Date(b.bookingDate).getTime();
-        const startTimestamp = startDate ? new Date(startDate).setHours(0, 0, 0, 0) : 0;
-        const endTimestamp = endDate ? new Date(endDate).setHours(23, 59, 59, 999) : Infinity;
-        return bookingTimestamp >= startTimestamp && bookingTimestamp <= endTimestamp;
+      current = current.filter((b) => {
+        const d = parseTimestampToDate(b.raw.bookingTime || b.raw.createdAt || b.dateOfBooking);
+        const ts = d ? d.getTime() : 0;
+        const startTs = startDate ? new Date(startDate).setHours(0, 0, 0, 0) : 0;
+        const endTs = endDate ? new Date(endDate).setHours(23, 59, 59, 999) : Infinity;
+        return ts >= startTs && ts <= endTs;
       });
     }
 
-    const totalEntries = currentBookings.length;
-    const totalPages = Math.ceil(totalEntries / entriesPerPage);
+    const total = current.length;
+    const pages = Math.max(1, Math.ceil(total / entriesPerPage));
     const startIndex = (currentPage - 1) * entriesPerPage;
-    const endIndex = Math.min(startIndex + entriesPerPage, totalEntries);
-    const paginatedBookings = currentBookings.slice(startIndex, endIndex);
-
+    const endIndex = Math.min(startIndex + entriesPerPage, total);
     return {
-      filteredBookings: currentBookings,
-      paginatedBookings,
-      totalEntries,
-      totalPages,
-      startEntry: totalEntries > 0 ? startIndex + 1 : 0,
+      filteredBookings: current,
+      paginatedBookings: current.slice(startIndex, endIndex),
+      totalEntries: total,
+      totalPages: pages,
+      startEntry: total > 0 ? startIndex + 1 : 0,
       endEntry: endIndex,
     };
   }, [bookings, searchTerm, currentPage, entriesPerPage, startDate, endDate]);
 
-  // --- Export PDF ---
-  const handleExportPDF = useCallback(() => {
-    try {
-      const doc = new jsPDF();
-      const sortedBookings = [...filteredBookings].sort((a, b) => new Date(a.bookingDate) - new Date(b.bookingDate));
-
-      const headers = [[
-        "Date of Booking",
-        "Passenger Name",
-        "Operator Name",
-        "Ticket Amount",
-        "Convenience Fee",
-        "Payment Mode",
-        "Total Amount"
-      ]];
-
-      const data = sortedBookings.map(b => [
-        b.bookingDate || "N/A",
-        b.passengerName || "N/A",
-        b.operatorName || "N/A",
-        b.ticketAmount != null ? `$${b.ticketAmount.toFixed(2)}` : "N/A",
-        b.gstCharged != null ? `$${b.gstCharged.toFixed(2)}` : "N/A",
-        b.paymentDetails || "N/A",
-        b.totalAmount != null ? `$${b.totalAmount.toFixed(2)}` : "N/A",
-      ]);
-
-      // --- Totals ---
-      const totals = {
-        ticketAmount: sortedBookings.reduce((sum, b) => sum + (b.ticketAmount || 0), 0),
-        gstCharged: sortedBookings.reduce((sum, b) => sum + (b.gstCharged || 0), 0),
-        totalAmount: sortedBookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0),
-      };
-
-      data.push([
-        "—", "—", "Overall Totals →",
-        `$${totals.ticketAmount.toFixed(2)}`,
-        `$${totals.gstCharged.toFixed(2)}`,
-        "—",
-        `$${totals.totalAmount.toFixed(2)}`
-      ]);
-
-      autoTable(doc, {
-        head: headers,
-        body: data,
-        styles: { fontSize: 8 },
-        headStyles: { fillColor: [52, 58, 64] },
-        margin: { top: 20 },
-      });
-
-      doc.save("Bus_Bookings_Detailed.pdf");
-    } catch (error) {
-      console.error("PDF generation failed:", error);
-      alert("Failed to generate PDF. Please check the console for details.");
+ // ---------- Export functions (fixed) ----------
+const handleExportExcel = useCallback(() => {
+  try {
+    if (!window.XLSX || !window.saveAs) {
+      alert("❌ Excel export libraries not loaded. Please check index.html CDN scripts.");
+      return;
     }
-  }, [filteredBookings]);
 
-  // --- Export Excel ---
-  const handleExportExcel = useCallback(() => {
-    const sortedBookings = [...filteredBookings].sort((a, b) => new Date(a.bookingDate) - new Date(b.bookingDate));
-
-    const dataToExport = sortedBookings.map(b => ({
-      "Date of Booking": b.bookingDate,
-      "Passenger Name": b.passengerName || "N/A",
+    const rows = filteredBookings.map((b) => ({
+      "Date of Booking": b.dateOfBooking,
+      "Passenger Name": b.passengerName,
       "Operator Name": b.operatorName,
       "Ticket Amount": b.ticketAmount,
-      "Convenience Fee": b.gstCharged,
-      "Payment Mode": b.paymentDetails,
+      "Convenience Fee": b.convenienceFee,
+      "Payment Mode": b.paymentMode,
       "Total Amount": b.totalAmount,
+      PNR: b.pnr,
+      "Ticket Number": b.ticketNumber,
+      "Booking Status": b.bookingStatus,
+      "User ID": b.userId,
     }));
 
-    const totals = {
-      ticketAmount: sortedBookings.reduce((sum, b) => sum + (b.ticketAmount || 0), 0),
-      gstCharged: sortedBookings.reduce((sum, b) => sum + (b.gstCharged || 0), 0),
-      totalAmount: sortedBookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0),
-    };
+    if (!rows.length) {
+      alert("No bookings to export.");
+      return;
+    }
 
-    dataToExport.push({
-      "Date of Booking": "",
-      "Passenger Name": "",
-      "Operator Name": "Overall Totals →",
-      "Ticket Amount": totals.ticketAmount,
-      "Convenience Fee": totals.gstCharged,
-      "Payment Mode": "",
-      "Total Amount": totals.totalAmount,
+    const ws = window.XLSX.utils.json_to_sheet(rows);
+    const wb = window.XLSX.utils.book_new();
+    window.XLSX.utils.book_append_sheet(wb, ws, "Bookings_Report");
+
+    const buffer = window.XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
 
-    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Bookings");
-    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-    const data = new Blob([excelBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8" });
-    saveAs(data, "Bus_Bookings_Detailed.xlsx");
-  }, [filteredBookings]);
+    window.saveAs(blob, "Bookings_Report.xlsx");
+  } catch (err) {
+    console.error("Excel export failed:", err);
+    alert("Failed to export Excel. Check console for details.");
+  }
+}, [filteredBookings]);
 
-  const renderPaginationButtons = () => {
-    const buttons = [];
-    const maxButtons = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
-    let endPage = Math.min(totalPages, startPage + maxButtons - 1);
-    if (endPage - startPage < maxButtons - 1) startPage = Math.max(1, endPage - maxButtons + 1);
-    for (let i = startPage; i <= endPage; i++) {
-      buttons.push(
-        <button key={i} className={`btn btn-sm ${i === currentPage ? "btn-primary" : "btn-outline-primary"} rounded-pill`} onClick={() => handlePageChange(i)} disabled={i === currentPage && totalPages > 0}>{i}</button>
-      );
+const handleExportPDF = useCallback(() => {
+  try {
+    if (!window.jspdf?.jsPDF) {
+      alert("❌ jsPDF not loaded. Please check CDN order.");
+      return;
     }
-    return buttons;
-  };
 
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    if (!doc.autoTable) {
+      alert("❌ jsPDF-AutoTable plugin missing. Make sure the plugin script is added after jsPDF.");
+      return;
+    }
+
+    const head = [
+      headers.filter((h) => h.key !== "actions").map((h) => h.label),
+    ];
+    const body = filteredBookings.map((b) => [
+      b.dateOfBooking,
+      b.passengerName,
+      b.operatorName,
+      b.ticketAmount,
+      b.convenienceFee,
+      b.paymentMode,
+      b.totalAmount,
+    ]);
+
+    doc.text(" Bookings Report", 14, 15);
+    doc.autoTable({
+      head,
+      body,
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [52, 58, 64] },
+      margin: { top: 20 },
+    });
+
+    doc.save("Bookings_Report.pdf");
+  } catch (err) {
+    console.error("PDF export failed:", err);
+    alert("Failed to export PDF. Check console for details.");
+  }
+}, [filteredBookings, headers]);
+
+
+  const handlePageChange = (page) => {
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
+  };
+  
+  // NEW FUNCTION: Handle "View" button click to open modal
   const handleActionClick = (action, bookingId) => {
-    const booking = bookings.find(b => b.id === bookingId);
-    if (!booking) return;
-    setSelectedBooking(booking);
-
     if (action === "View") {
-      setModalConfig({
-        title: `Booking Details: ${booking.id}`,
-        content: <BookingDetailsView booking={booking} />,
-        size: "xl",
-        footerButtons: <button className="btn btn-primary" onClick={() => setIsModalOpen(false)}>Close</button>
-      });
-      setIsModalOpen(true);
+      const booking = bookings.find(b => b.id === bookingId);
+      if (booking) {
+        // NOTE: The BookingDetailsView component expects `booking.bookingDate`
+        // which isn't present in the table data, but `dateOfBooking` is. 
+        // We'll map the data to match the expected format or just pass `dateOfBooking`.
+        setSelectedBooking({
+          ...booking,
+          bookingDate: booking.dateOfBooking, // Mapping for consistency with BookingDetailsView.jsx
+          gstCharged: booking.convenienceFee, // Mapping for consistency with BookingDetailsView.jsx
+          // Add placeholder values for fields only present in BookingDetailsView.jsx's financial section for a complete view
+          platformCommission: booking.totalAmount * 0.08, 
+          tcsCollected: booking.totalAmount * 0.01,
+          paymentDetails: booking.paymentMode, // Mapping for consistency
+        });
+        setIsModalOpen(true);
+      }
     }
   };
 
+
+  // ---------- Render ----------
   return (
-    <>
-      <div className="container-fluid p-4">
-        <h4 className="pb-2 border-bottom border-primary mb-4 fw-bold text-primary">Booking Details Management</h4>
+    <div className="container-fluid p-4">
+      <h4 className="pb-2 border-bottom border-primary mb-4 fw-bold text-primary">Booking Details Management</h4>
 
-        {/* Filters and Exports */}
-        <div className="card shadow-sm mb-4">
-          <div className="card-body">
-            <div className="row g-3 align-items-end">
-              <div className="col-12 col-md-4">
-                <label htmlFor="search-input" className="form-label small text-muted">Search by ID, Passenger, or Operator</label>
-                <input type="text" id="search-input" className="form-control" placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-              </div>
-              <div className="col-6 col-md-2">
-                <label htmlFor="start-date" className="form-label small text-muted">From Date</label>
-                <input type="date" id="start-date" className="form-control" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-              </div>
-              <div className="col-6 col-md-2">
-                <label htmlFor="end-date" className="form-label small text-muted">To Date</label>
-                <input type="date" id="end-date" className="form-control" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-              </div>
-              <div className="col-12 col-md-4 d-flex justify-content-end gap-2">
-                <button className="btn btn-success" onClick={handleExportExcel}><i className="fas fa-file-excel me-1"></i> Excel</button>
-                <button className="btn btn-danger" onClick={handleExportPDF}><i className="fas fa-file-pdf me-1"></i> PDF</button>
-              </div>
+      <div className="card shadow-sm mb-4">
+        <div className="card-body">
+          <div className="row g-3 align-items-end">
+            <div className="col-12 col-md-4">
+              <label className="form-label small text-muted">Search by any field</label>
+              <input
+                className="form-control"
+                value={searchTerm}
+                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                placeholder="Search..."
+              />
             </div>
-          </div>
-        </div>
-
-        {/* Table */}
-        <div className="table-responsive shadow-lg rounded-3">
-          <table className="table table-striped table-hover table-light mb-0 align-middle">
-            <thead className="table-dark">
-              <tr>{headers.map(h => <th key={h.key}>{h.label}</th>)}</tr>
-            </thead>
-            <tbody>
-              {paginatedBookings.length > 0 ? paginatedBookings.map(b => (
-                <tr key={b.id}>
-                  <td>{b.bookingDate}</td>
-                  <td>{b.passengerName || <span className="text-danger fst-italic">N/A</span>}</td>
-                  <td>{b.operatorName}</td>
-                  <td>{formatCurrency(b.ticketAmount)}</td>
-                  <td>{formatCurrency(b.gstCharged)}</td>
-                  <td>{b.paymentDetails}</td>
-                  <td>{formatCurrency(b.totalAmount)}</td>
-                  <td>
-                    <button className="btn btn-sm btn-info text-white" onClick={() => handleActionClick("View", b.id)}>
-                      <Eye className="d-inline d-md-none" size={16} />
-                      <span className="d-none d-md-inline">View</span>
-                    </button>
-                  </td>
-                </tr>
-              )) : (
-                <tr><td colSpan={headers.length} className="text-center py-5 text-muted">No bookings found.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 gap-3">
-          <div className="text-muted small">Showing {startEntry} to {endEntry} of {totalEntries} entries</div>
-          <div className="d-flex gap-1 flex-wrap align-items-center">
-            <button className="btn btn-sm btn-outline-secondary rounded-pill" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>Previous</button>
-            {renderPaginationButtons()}
-            <button className="btn btn-sm btn-outline-secondary rounded-pill" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages || totalPages === 0}>Next</button>
+            <div className="col-6 col-md-2">
+              <label className="form-label small text-muted">From (Booking Date)</label>
+              <input
+                type="date"
+                className="form-control"
+                value={startDate}
+                onChange={(e) => { setStartDate(e.target.value); setCurrentPage(1); }}
+              />
+            </div>
+            <div className="col-6 col-md-2">
+              <label className="form-label small text-muted">To (Booking Date)</label>
+              <input
+                type="date"
+                className="form-control"
+                value={endDate}
+                onChange={(e) => { setEndDate(e.target.value); setCurrentPage(1); }}
+              />
+            </div>
+            <div className="col-12 col-md-4 d-flex justify-content-end gap-2">
+              <button className="btn btn-success" onClick={handleExportExcel} disabled={loading || totalEntries === 0}>Export Excel</button>
+              <button className="btn btn-danger" onClick={handleExportPDF} disabled={loading || totalEntries === 0}>Export PDF</button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Modal */}
-      <CustomModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={modalConfig.title} size={modalConfig.size} footerButtons={modalConfig.footerButtons}>
-        {modalConfig.content}
+      <div className="table-responsive shadow-lg rounded-3">
+        <table className="table table-striped table-hover table-light mb-0 align-middle">
+          <thead className="table-dark">
+            <tr>{headers.map((h) => <th key={h.key}>{h.label}</th>)}</tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr><td colSpan={headers.length} className="text-center py-5">Loading bookings...</td></tr>
+            ) : paginatedBookings.length > 0 ? paginatedBookings.map((b) => (
+              <tr key={b.id}>
+                {headers.map((h) => {
+                  const val = b[h.key];
+                  if (["ticketAmount", "convenienceFee", "totalAmount"].includes(h.key)) return <td key={h.key}>{formatCurrency(val)}</td>;
+                  if (h.key === "actions") return (
+                   <td>
+                    <button className="btn btn-sm btn-info text-white" onClick={() => handleActionClick("View", b.id)}>
+                      <Eye className="d-inline d-md-none" size={16} />
+                      <span className="d-none d-md-inline"><Eye/></span>
+                    </button>
+                  </td>
+                  );
+                  return <td key={h.key}>{val}</td>;
+                })}
+              </tr>
+            )) : (
+              <tr><td colSpan={headers.length} className="text-center py-5 text-muted">No bookings found.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination */}
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 gap-3">
+        <div className="text-muted small">Showing {startEntry} to {endEntry} of {totalEntries} entries</div>
+        <div className="d-flex gap-1 flex-wrap align-items-center">
+          <button className="btn btn-sm btn-outline-secondary rounded-pill" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>Previous</button>
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button key={i} className={`btn btn-sm ${i + 1 === currentPage ? "btn-primary" : "btn-outline-primary"} rounded-pill`} onClick={() => handlePageChange(i + 1)}>
+              {i + 1}
+            </button>
+          ))}
+          <button className="btn btn-sm btn-outline-secondary rounded-pill" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>Next</button>
+        </div>
+      </div>
+      
+      {/* NEW: Custom Modal for Booking Details */}
+      <CustomModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={`Booking Details: ${selectedBooking?.id || ''}`}
+        size="xl"
+        footerButtons={<button className="btn btn-secondary" onClick={() => setIsModalOpen(false)}>Close</button>}
+      >
+        <BookingDetailsView booking={selectedBooking} />
       </CustomModal>
-    </>
+      
+    </div>
   );
 };
 

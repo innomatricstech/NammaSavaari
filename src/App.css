@@ -152,3 +152,60 @@ h4.pb-2 { font-size: 1.15rem !important; }
 @media (min-width: 768px) {
 /* No extra margin-left needed */
 }
+/* Sidebar Profile */
+.sidebar-profile {
+  text-align: center;
+  padding: 1rem;
+  margin-top: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.sidebar-profile:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+/* Profile Image */
+.sidebar-profile img {
+  width: 80px;       /* Increased from 64px */
+  height: 80px;      /* Increased from 64px */
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid #fff; /* White border around the image */
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.sidebar-profile img:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Profile Name */
+.sidebar-profile .fw-bold {
+  color: #fff;
+  font-size: 1.1rem;  /* Slightly larger for balance */
+  margin-bottom: 0.25rem;
+}
+
+/* Profile Email */
+.sidebar-profile .small.opacity-75 {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.85rem; /* Slightly larger */
+}
+
+/* Active Status */
+.sidebar-profile .text-warning {
+  font-size: 0.75rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 0.25rem;
+}
+
+.sidebar-profile .text-warning span {
+  font-size: 0.9rem; /* Slightly larger dot for balance */
+  color: #1cff07;    /* Yellow dot for active */
+  margin-right: 0.25rem;
+}
