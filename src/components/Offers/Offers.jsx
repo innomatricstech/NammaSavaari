@@ -201,7 +201,11 @@ export default function OfferForm() {
           onChange={([date]) =>
             setOfferData({ ...offerData, validTill: date ? date.toISOString().split("T")[0] : "" })
           }
-          options={{ dateFormat: "Y-m-d", minDate: "today" }}
+          options={{
+            dateFormat: "Y-m-d",
+            minDate: "today",
+            disableMobile: false, // important for mobile
+          }}
           className="input-date"
           placeholder="Select date"
         />
