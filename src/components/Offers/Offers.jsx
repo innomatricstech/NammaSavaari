@@ -198,13 +198,20 @@ export default function OfferForm() {
         <Flatpickr
           id="validTill"
           value={offerData.validTill}
-          onChange={([date]) =>
-            setOfferData({ ...offerData, validTill: date ? date.toISOString().split("T")[0] : "" })
-          }
+          onChange={([date]) => {
+            if (date) {
+              const year = date.getFullYear();
+              const month = String(date.getMonth() + 1).padStart(2, "0"); // months are 0-based
+              const day = String(date.getDate()).padStart(2, "0");
+              setOfferData({ ...offerData, validTill: `${year}-${month}-${day}` });
+            } else {
+              setOfferData({ ...offerData, validTill: "" });
+            }
+          }}
           options={{
             dateFormat: "Y-m-d",
             minDate: "today",
-            disableMobile: false, // important for mobile
+            disableMobile: false,
           }}
           className="input-date"
           placeholder="Select date"
