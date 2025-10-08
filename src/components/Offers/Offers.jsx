@@ -12,6 +12,8 @@ import {
 } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import "./Offers.css";
+import Flatpickr from "react-flatpickr";
+import "flatpickr/dist/themes/material_red.css"; // flatpickr theme
 
 export default function OfferForm() {
   const [offerData, setOfferData] = useState({
@@ -105,7 +107,7 @@ export default function OfferForm() {
     }
   };
 
-  // Fetch ALL offers from Firestore (admin/admin_offers/offers)
+  // Fetch ALL offers from Firestore
   useEffect(() => {
     if (viewOffers) {
       const offersRef = collection(db, "admin", "admin_offers", "offers");
@@ -193,11 +195,15 @@ export default function OfferForm() {
         <label htmlFor="validTill" className="input-label">
           Valid Till
         </label>
-        <input
-          type="date"
+        <Flatpickr
           id="validTill"
           value={offerData.validTill}
-          onChange={handleChange}
+          onChange={([date]) =>
+            setOfferData({ ...offerData, validTill: date ? date.toISOString().split("T")[0] : "" })
+          }
+          options={{ dateFormat: "Y-m-d", minDate: "today" }}
+          className="input-date"
+          placeholder="Select date"
         />
 
         <label htmlFor="terms" className="input-label">
