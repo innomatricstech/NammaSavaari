@@ -2,12 +2,13 @@ import React, { useState, useEffect } from "react";
 import { db, storage } from "../../firebase";
 import {
   collection,
-  collectionGroup,
   addDoc,
   serverTimestamp,
   query,
   orderBy,
   onSnapshot,
+  deleteDoc,
+  doc,
 } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import "./Offers.css";
@@ -17,23 +18,22 @@ export default function OfferForm() {
     offerLine: "",
     couponCode: "",
     validTill: "",
-    terms: "", 
-    selectedImage: null, // Preview URL
-    imageFile: null, // File to upload
+    terms: "",
+    selectedImage: null,
+    imageFile: null,
   });
 
   const [uploading, setUploading] = useState(false);
   const [offers, setOffers] = useState([]);
   const [viewOffers, setViewOffers] = useState(false);
 
-  const adminDocId = "admin"; // Document ID under 'admin' collection
-
-  // --- Input handlers ---
+  // Handle text inputs
   const handleChange = (e) => {
     const { id, value } = e.target;
     setOfferData({ ...offerData, [id]: value });
   };
 
+  // Handle image upload selection
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -49,7 +49,7 @@ export default function OfferForm() {
     }
   };
 
-  // --- Form submission ---
+  // Upload offer to Firestore + Storage
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!offerData.offerLine || !offerData.couponCode || !offerData.imageFile) {
@@ -60,7 +60,6 @@ export default function OfferForm() {
     try {
       setUploading(true);
 
-      // Upload image to Firebase Storage
       const storageRef = ref(
         storage,
         `offers/${offerData.imageFile.name}_${Date.now()}`
@@ -79,19 +78,17 @@ export default function OfferForm() {
         );
       });
 
-      // Add offer document to admin_offers/offers
       const offersCollectionRef = collection(db, "admin", "admin_offers", "offers");
       await addDoc(offersCollectionRef, {
         offerLine: offerData.offerLine,
         couponCode: offerData.couponCode,
         validTill: offerData.validTill,
-        terms: offerData.terms, // Save as 'terms'
+        terms: offerData.terms,
         imageUrl,
         createdAt: serverTimestamp(),
       });
 
       alert("Offer uploaded successfully!");
-      // Reset form
       setOfferData({
         offerLine: "",
         couponCode: "",
@@ -100,21 +97,23 @@ export default function OfferForm() {
         selectedImage: null,
         imageFile: null,
       });
-      setUploading(false);
     } catch (error) {
       console.error("Upload failed:", error);
       alert(`Failed to upload offer: ${error.message}`);
+    } finally {
       setUploading(false);
     }
   };
 
-  // --- Fetch offers (Collection Group query) ---
+  // Fetch ALL offers from Firestore (admin/admin_offers/offers)
   useEffect(() => {
     if (viewOffers) {
-      const q = query(collectionGroup(db, "offers"), orderBy("createdAt", "desc"));
+      const offersRef = collection(db, "admin", "admin_offers", "offers");
+      const q = query(offersRef, orderBy("createdAt", "desc"));
       const unsubscribe = onSnapshot(q, (snapshot) => {
         const fetchedOffers = snapshot.docs.map((doc) => ({
           id: doc.id,
+          refPath: doc.ref.path,
           ...doc.data(),
         }));
         setOffers(fetchedOffers);
@@ -122,6 +121,23 @@ export default function OfferForm() {
       return () => unsubscribe();
     }
   }, [viewOffers]);
+
+  // Delete offer from Firestore
+  const handleDelete = async (offer) => {
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete "${offer.offerLine}"?`
+    );
+    if (!confirmDelete) return;
+
+    try {
+      const docRef = doc(db, "admin", "admin_offers", "offers", offer.id);
+      await deleteDoc(docRef);
+      alert("Offer deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting offer:", error);
+      alert("Failed to delete offer.");
+    }
+  };
 
   return (
     <div className="offer-container">
@@ -150,31 +166,46 @@ export default function OfferForm() {
 
       {/* Form */}
       <form onSubmit={handleSubmit}>
+        <label htmlFor="offerLine" className="input-label">
+          Offer Line
+        </label>
         <input
           type="text"
           id="offerLine"
-          placeholder="Offer Line"
+          placeholder="Enter offer headline"
           value={offerData.offerLine}
           onChange={handleChange}
           required
         />
+
+        <label htmlFor="couponCode" className="input-label">
+          Coupon Code
+        </label>
         <input
           type="text"
           id="couponCode"
-          placeholder="Coupon Code"
+          placeholder="Enter coupon code"
           value={offerData.couponCode}
           onChange={handleChange}
           required
         />
+
+        <label htmlFor="validTill" className="input-label">
+          Valid Till
+        </label>
         <input
           type="date"
           id="validTill"
           value={offerData.validTill}
           onChange={handleChange}
         />
+
+        <label htmlFor="terms" className="input-label">
+          Terms & Conditions
+        </label>
         <textarea
           id="terms"
-          placeholder="Terms"
+          placeholder="Enter offer terms and conditions"
           value={offerData.terms}
           onChange={handleChange}
         />
@@ -184,7 +215,7 @@ export default function OfferForm() {
         </button>
       </form>
 
-      {/* Toggle offers */}
+      {/* View Offers Toggle */}
       <button
         className="btn-red-outline mt-3"
         onClick={() => setViewOffers(!viewOffers)}
@@ -196,16 +227,28 @@ export default function OfferForm() {
       {viewOffers && (
         <div className="offers-list mt-4">
           {offers.length === 0 ? (
-            <p>No offers available.</p>
+            <p className="no-offers">No offers available.</p>
           ) : (
             offers.map((offer) => (
-              <div className="offer-card" key={offer.id}>
-                <img src={offer.imageUrl} alt={offer.offerLine} />
-                <div className="offer-details">
+              <div className="offer-row" key={offer.id}>
+                <div className="offer-row-image">
+                  <img src={offer.imageUrl} alt={offer.offerLine} />
+                </div>
+                <div className="offer-row-details">
                   <h4>{offer.offerLine}</h4>
-                  <p>Coupon: <strong>{offer.couponCode}</strong></p>
-                  {offer.validTill && <p>Valid Till: {offer.validTill}</p>}
-                  {offer.terms && <p className="terms-text">{offer.terms}</p>}
+                  <p><strong>Coupon:</strong> {offer.couponCode}</p>
+                  {offer.validTill && (
+                    <p><strong>Valid Till:</strong> {offer.validTill}</p>
+                  )}
+                  {offer.terms && (
+                    <p className="terms-text">{offer.terms}</p>
+                  )}
+                  <button
+                    className="btn-red delete-btn"
+                    onClick={() => handleDelete(offer)}
+                  >
+                    Delete Offer
+                  </button>
                 </div>
               </div>
             ))
