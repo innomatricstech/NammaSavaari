@@ -211,7 +211,8 @@ export default function OfferForm() {
           options={{
             dateFormat: "Y-m-d",
             minDate: "today",
-            disableMobile: false,
+            // FIX: Set disableMobile to TRUE to force the desktop UI, resolving the placeholder issue
+            disableMobile: true, 
           }}
           className="input-date"
           placeholder="Select date"
