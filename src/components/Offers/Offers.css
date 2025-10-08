@@ -65,6 +65,7 @@
 }
 
 input,
+.input-date, /* <-- FIX 1: Included Flatpickr class */
 textarea {
   width: 100%;
   padding: 20px 26px;
@@ -80,9 +81,34 @@ textarea {
 }
 
 input:focus,
+.input-date:focus, /* <-- FIX 2: Included Flatpickr focus */
 textarea:focus {
   border-color: #d50000;
   box-shadow: 0 0 10px rgba(213, 0, 0, 0.25);
+}
+
+/* FIX 3: Cross-browser placeholder styling for visibility */
+input::placeholder,
+.input-date::placeholder,
+textarea::placeholder {
+    color: #aaa;
+    opacity: 1; /* Ensures it's not transparent */
+}
+input::-webkit-input-placeholder,
+.input-date::-webkit-input-placeholder,
+textarea::-webkit-input-placeholder {
+    color: #aaa;
+}
+input:-moz-placeholder,
+.input-date:-moz-placeholder,
+textarea:-moz-placeholder {
+    color: #aaa;
+    opacity: 1;
+}
+input:-ms-input-placeholder,
+.input-date:-ms-input-placeholder,
+textarea:-ms-input-placeholder {
+    color: #aaa;
 }
 
 textarea {
@@ -263,7 +289,9 @@ textarea {
     font-size: 16px;
   }
 
+  /* FIX 4: Ensure input padding is correct on mobile */
   input,
+  .input-date, /* <-- Included Flatpickr class */
   textarea {
     padding: 16px 18px;
     font-size: 16px;
