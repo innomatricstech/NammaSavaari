@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import "./faqs.css";
 import { db } from '../../firebase';
-import { collection, addDoc, serverTimestamp, getDocs } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, getDocs, doc, deleteDoc } from 'firebase/firestore';
 
 // ✅ Reusable Modal Utility
 const showModal = (message, title = "Notification") => {
@@ -100,6 +100,7 @@ const FAQSubmissionForm = ({ topicTitle, handleBack }) => {
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
+  // ✅ Save FAQ
   const handleSave = async () => {
     if (!formData.question || !formData.answer) {
       showModal("Please fill in both Question and Answer fields.", "Validation Error");
@@ -122,6 +123,7 @@ const FAQSubmissionForm = ({ topicTitle, handleBack }) => {
     }
   };
 
+  // ✅ View FAQs
   const handleView = async () => {
     try {
       const snapshot = await getDocs(collection(db, "admin", getFirestorePath(topicTitle), "faqs"));
@@ -134,19 +136,34 @@ const FAQSubmissionForm = ({ topicTitle, handleBack }) => {
     }
   };
 
+  // ✅ Toggle FAQ Answer
   const toggleFAQ = (id) => {
     setExpandedId(expandedId === id ? null : id);
+  };
+
+  // ✅ Delete FAQ
+  const handleDelete = async (faqId) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this FAQ?");
+    if (!confirmDelete) return;
+
+    try {
+      await deleteDoc(doc(db, "admin", getFirestorePath(topicTitle), "faqs", faqId));
+      showModal("FAQ deleted successfully!", "Deleted");
+      setFaqsList(prev => prev.filter(faq => faq.id !== faqId));
+    } catch (error) {
+      console.error("Error deleting FAQ:", error);
+      showModal("Error deleting FAQ. Try again.", "Error");
+    }
   };
 
   return (
     <main className="MainContent form-view-content">
       <div className="FormHeader">
-  <h1 className="FormTitle gradient-text">Create {topicTitle} FAQ</h1>
-  <button className="BackArrow" onClick={handleBack}>
-    <span></span>
-  </button>
-</div>
-
+        <h1 className="FormTitle gradient-text">Create {topicTitle} FAQ</h1>
+        <button className="BackArrow" onClick={handleBack}>
+          <span></span>
+        </button>
+      </div>
 
       <div className="FormCard glass-card">
         <label className="FormLabel" htmlFor="question">Question</label>
@@ -201,8 +218,8 @@ const FAQSubmissionForm = ({ topicTitle, handleBack }) => {
               <p className="NoFAQ">No FAQs found yet.</p>
             ) : (
               faqsList.map((faq) => (
-                <div key={faq.id} className={`FAQCard ${expandedId === faq.id ? "expanded" : ""}`} onClick={() => toggleFAQ(faq.id)}>
-                  <div className="FAQQuestion">
+                <div key={faq.id} className={`FAQCard ${expandedId === faq.id ? "expanded" : ""}`}>
+                  <div className="FAQQuestion" onClick={() => toggleFAQ(faq.id)}>
                     <i className={`fa ${expandedId === faq.id ? "fa-chevron-down" : "fa-chevron-right"}`}></i>
                     <span>{faq.question}</span>
                   </div>
@@ -219,6 +236,15 @@ const FAQSubmissionForm = ({ topicTitle, handleBack }) => {
                           <i className="fa fa-play-circle"></i> Watch Video
                         </a>
                       )}
+                      {/* Delete Button */}
+                      <button 
+                        className="FormButton secondary"
+                        style={{ marginTop: '0.8rem' }}
+                        onClick={() => handleDelete(faq.id)}
+                      >
+                        <i className="fa fa-trash" style={{ marginRight: '0.5rem' }}></i>
+                        Delete FAQ
+                      </button>
                     </div>
                   </div>
                 </div>
